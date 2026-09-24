@@ -1,6 +1,7 @@
 import type { JobWithMetadata } from "pg-boss";
 import { getPrisma } from "@/lib/db";
-import { createBoss, ensureQueue, GENERATE_QUEUE, type GenerateJob } from "@/lib/jobs";
+import { createBoss, DELIVER_QUEUE, ensureQueue, GENERATE_QUEUE, type DeliverJob, type GenerateJob } from "@/lib/jobs";
+import { handleDeliver } from "./deliver";
 import { handleGenerate } from "./generate";
 import { tick } from "./tick";
 import { startTicker } from "./ticker";
@@ -16,11 +17,17 @@ await ensureQueue(boss);
 await boss.work(
   GENERATE_QUEUE,
   { includeMetadata: true, batchSize: 1, localConcurrency: 2, pollingIntervalSeconds: 2 },
-  async ([job]: JobWithMetadata<GenerateJob>[]) => handleGenerate({ prisma }, job),
+  async ([job]: JobWithMetadata<GenerateJob>[]) => handleGenerate({ prisma, boss }, job),
+);
+
+await boss.work(
+  DELIVER_QUEUE,
+  { includeMetadata: true, batchSize: 1, localConcurrency: 2, pollingIntervalSeconds: 2 },
+  async ([job]: JobWithMetadata<DeliverJob>[]) => handleDeliver({ prisma }, job),
 );
 
 const ticker = startTicker((now) => tick(prisma, boss, now));
-console.log("[worker] prêt : file de génération et planificateur actifs");
+console.log("[worker] prêt : génération, livraison et planificateur actifs");
 
 async function shutdown(signal: string) {
   console.log(`[worker] ${signal} reçu, arrêt`);
