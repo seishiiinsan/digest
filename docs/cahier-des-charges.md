@@ -88,7 +88,7 @@ Le web n'appelle jamais Claude directement. Il crée un job en base, que le work
 | --- | --- | --- |
 | Front + API | Next.js 16 (App Router, server actions), TypeScript, Tailwind 4 | Même stack que le portfolio et Onbo |
 | Base | PostgreSQL 17 + Prisma | Relations claires, migrations versionnées |
-| Auth | Auth.js (Credentials) ou Better Auth, mots de passe en Argon2id | Email + mot de passe, sessions en base |
+| Auth | Better Auth, mots de passe en Argon2id | Email + mot de passe, vérification et reset natifs, sessions en base |
 | Jobs | pg-boss (file de jobs dans Postgres) | Pas de Redis, reprises et retries inclus |
 | Planification | Tick du worker toutes les minutes : sélectionne les comptes dont l'heure est passée | Fuseaux gérés par compte, pas de cron par utilisateur |
 | IA | SDK officiel `@anthropic-ai/sdk` | Outils serveur web search et web fetch, sortie structurée |
@@ -100,7 +100,11 @@ Le web n'appelle jamais Claude directement. Il crée un job en base, que le work
 
 | Table | Champs principaux |
 | --- | --- |
-| User | email, passwordHash, emailVerifiedAt, locale, timezone, createdAt |
+| User | email, emailVerified, name, locale, timezone, createdAt |
+| Session | userId, token, expiresAt, ipAddress, userAgent |
+| Account | userId, providerId (credential), password (Argon2id) |
+| Verification | identifier, value, expiresAt (liens de vérification et de réinitialisation) |
+| RateLimit | key, count, lastRequest (limites par IP et par email) |
 | ApiKey | userId, ciphertext, iv, authTag, last4, model, validatedAt |
 | Topic | userId, title, description, keywords[], includeDomains[], excludeDomains[], detailLevel, active |
 | Schedule | userId, frequency (daily, weekly), weekday, hour, nextRunAt, paused |
@@ -109,6 +113,8 @@ Le web n'appelle jamais Claude directement. Il crée un job en base, que le work
 | Digest | runId, userId, language, createdAt |
 | Item | digestId, topicId, title, category, summary, whyItMatters, relevance, urlHash, feedback, starred |
 | Source | itemId, url, title, domain, publishedAt, citedText |
+
+User, Session, Account, Verification et RateLimit suivent le schéma de Better Auth.
 
 `urlHash` (SHA-256 de l'URL normalisée) sert au dédoublonnage d'une veille à l'autre. Toutes les requêtes filtrent sur `userId`.
 
@@ -226,9 +232,9 @@ Toutes les règles reposent sur un même préfixe de type, de la branche jusqu'�
 
 ## Questions ouvertes
 
-- [ ] **Emails transactionnels** : la vérification d'adresse et le mot de passe oublié demandent un envoi d'email dès le MVP. Resend ou le SMTP du VPS ?
+- [x] **Emails transactionnels** : SMTP (`SMTP_URL`), celui du VPS en production, Mailpit en local et en CI.
 - [ ] **Instance de démo** : inscriptions ouvertes à tous (chacun avec sa clé), ou sur invitation pour limiter les abus ?
-- [ ] **Auth.js ou Better Auth** : Better Auth gère nativement email + mot de passe, vérification et reset, Auth.js demande plus de code pour ce cas.
+- [x] **Auth.js ou Better Auth** : Better Auth, qui gère nativement email + mot de passe, vérification et reset.
 - [ ] **Batch API** : la génération n'est pas urgente, l'API Batch diviserait le coût par 2. À vérifier : compatibilité avec les outils de recherche web.
 - [ ] **Licence** : MIT (réutilisation libre) ou AGPL (les forks hébergés restent ouverts) ?
 - [ ] **VPS cible** : le même que celui d'Onbo, ou un séparé ? Nom de domaine de la démo (par exemple digest.gabin-hallosserie.com) ?
