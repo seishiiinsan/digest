@@ -4,6 +4,7 @@ import { APIError, createAuthMiddleware } from "better-auth/api";
 import { haveIBeenPwned } from "better-auth/plugins";
 import { getPrisma } from "@/lib/db";
 import { resetPasswordMail, sendMail, verificationMail } from "@/lib/mailer";
+import { signupEnabled } from "@/lib/instance";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password-rules";
 import { hit, type RateLimitRule } from "@/lib/rate-limit";
@@ -27,6 +28,7 @@ function createAuth() {
     database: prismaAdapter(prisma, { provider: "postgresql" }),
     emailAndPassword: {
       enabled: true,
+      disableSignUp: !signupEnabled(),
       requireEmailVerification: true,
       minPasswordLength: MIN_PASSWORD_LENGTH,
       maxPasswordLength: 128,
