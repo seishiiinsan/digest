@@ -26,11 +26,11 @@ test("une clé invalide est refusée avec un message clair", async ({ page }) =>
 
 test("thèmes : création, modèle, modification, désactivation, suppression", async ({ page }) => {
   await page.goto("/themes");
-  await page.getByRole("link", { name: "Nouveau thème" }).click();
+  await page.getByRole("link", { name: "Nouvelle rubrique" }).click();
   await page.getByLabel("Titre").fill("Next.js");
   await page.getByLabel("Mots-clés").fill("RSC, App Router");
   await page.getByLabel("Sources à privilégier").fill("https://www.nextjs.org/blog\nreact.dev");
-  await page.getByRole("button", { name: "Créer le thème" }).click();
+  await page.getByRole("button", { name: "Créer la rubrique" }).click();
 
   await expect(page).toHaveURL(/\/themes$/);
   const topic = page.getByTestId("topic").filter({ hasText: "Next.js" });
@@ -59,7 +59,7 @@ test("planning, préférences et webhook", async ({ page }) => {
   await page.goto("/reglages");
 
   await page.getByLabel("Fuseau horaire").selectOption("America/New_York");
-  await page.getByLabel("Langue des veilles").selectOption("en");
+  await page.getByLabel("Langue des éditions").selectOption("en");
   await page.getByRole("button", { name: "Enregistrer" }).nth(1).click();
   await expect(page.getByText("Préférences enregistrées.")).toBeVisible();
 
