@@ -46,22 +46,82 @@ enum Feedback {
   not_useful
 }
 
+// User, Session, Account, Verification et RateLimit suivent le schéma attendu par Better Auth.
+// Le mot de passe (Argon2id) est stocké dans Account.password, fournisseur « credential ».
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  passwordHash    String
-  emailVerifiedAt DateTime?
-  locale          String    @default("fr")
-  timezone        String    @default("Europe/Paris")
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id            String   @id @default(cuid())
+  name          String   @default("")
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  locale        String   @default("fr")
+  timezone      String   @default("Europe/Paris")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
+  sessions   Session[]
+  accounts   Account[]
   apiKey     ApiKey?
   schedule   Schedule?
   topics     Topic[]
   deliveries Delivery[]
   runs       Run[]
   digests    Digest[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  password              String?
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Jetons de vérification d'email et de réinitialisation du mot de passe.
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+// Compteurs de limite de débit, par IP (Better Auth) et par email.
+model RateLimit {
+  id          String @id @default(cuid())
+  key         String @unique
+  count       Int
+  lastRequest BigInt
 }
 
 // Clé Anthropic chiffrée en AES-256-GCM, jamais renvoyée au navigateur.
