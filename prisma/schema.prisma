@@ -222,11 +222,13 @@ model Run {
 }
 
 model Digest {
-  id        String   @id @default(cuid())
-  runId     String   @unique
-  userId    String
-  language  String
-  createdAt DateTime @default(now())
+  id            String    @id @default(cuid())
+  runId         String    @unique
+  userId        String
+  language      String
+  deliveredAt   DateTime? // envoi réussi au webhook
+  deliveryError String?
+  createdAt     DateTime  @default(now())
 
   run   Run    @relation(fields: [runId], references: [id], onDelete: Cascade)
   user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -255,6 +257,7 @@ model Item {
 
   @@index([digestId])
   @@index([urlHash])
+  // Recherche plein texte : index GIN sur une expression, créé en SQL dans la migration « lecture ».
 }
 
 model Source {
