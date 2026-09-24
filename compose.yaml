@@ -2,6 +2,12 @@ name: digest
 
 x-app-env: &app-env
   DATABASE_URL: postgresql://${POSTGRES_USER:-digest}:${POSTGRES_PASSWORD:-digest}@db:5432/${POSTGRES_DB:-digest}
+  APP_URL: ${APP_URL:-http://localhost:3000}
+  # Valeur de démo : à remplacer sur tout serveur accessible (openssl rand -base64 32).
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-digest-local-secret-a-remplacer-en-production}
+  SMTP_URL: ${SMTP_URL:-smtp://mailpit:1025}
+  MAIL_FROM: ${MAIL_FROM:-Digest <digest@localhost>}
+  PASSWORD_BREACH_CHECK: ${PASSWORD_BREACH_CHECK:-true}
 
 services:
   db:
@@ -21,6 +27,14 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  # Boîte mail de test : les emails envoyés sont lisibles sur http://localhost:8025.
+  mailpit:
+    image: axllent/mailpit:v1.31
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MAILPIT_PORT:-8025}:8025"
+      - "127.0.0.1:${SMTP_PORT:-1025}:1025"
 
   migrate:
     build:
