@@ -18,6 +18,7 @@ export default defineConfig({
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {
     command: "pnpm start",
+    env: { ADMIN_EMAILS: "admin-e2e@digest.test" },
     url: "http://localhost:3000/api/health",
     reuseExistingServer: !process.env.CI,
   },

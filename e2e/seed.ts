@@ -40,3 +40,7 @@ export async function seedDigest(email: string) {
     },
   });
 }
+
+export async function deleteUser(email: string) {
+  await getPrisma().user.deleteMany({ where: { email } });
+}

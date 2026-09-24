@@ -68,6 +68,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: docker/setup-buildx-action@v4
+      - name: Configuration de production valide
+        run: docker compose -f compose.yaml -f deploy/compose.prod.yaml config --quiet
+        env:
+          DOMAIN: digest.example.com
+          POSTGRES_PASSWORD: ci
+          BETTER_AUTH_SECRET: ci
+          ENCRYPTION_KEY: ci
+          SMTP_URL: smtp://smtp.example.com:587
+          MAIL_FROM: Digest <digest@example.com>
       - run: docker compose build
       - run: docker compose up -d
       - name: Page d'accueil et santé
