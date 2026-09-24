@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { GenerateButton } from "@/components/generate-button";
 import { requireUserData } from "@/lib/session";
 import { AccountActions } from "./account-actions";
 
@@ -7,7 +8,13 @@ export const metadata: Metadata = { title: "Tableau de bord · Digest" };
 
 export default async function DashboardPage() {
   const { session, data } = await requireUserData();
-  const [apiKey, topics, schedule, delivery] = await Promise.all([data.apiKey(), data.topics(), data.schedule(), data.delivery()]);
+  const [apiKey, topics, schedule, delivery, activeRun] = await Promise.all([
+    data.apiKey(),
+    data.topics(),
+    data.schedule(),
+    data.delivery(),
+    data.activeRun(),
+  ]);
 
   const steps = [
     { label: "Adresse email vérifiée", done: session.user.emailVerified, href: null },
@@ -44,6 +51,22 @@ export default async function DashboardPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-medium">Première veille</h2>
+        {activeRun ? (
+          <Link href={`/executions/${activeRun.id}`} className="text-sm underline underline-offset-4">
+            Une veille est en cours de génération : suivre la progression
+          </Link>
+        ) : (
+          <>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Inutile d&apos;attendre le planning : lancez une veille maintenant sur vos thèmes actifs.
+            </p>
+            <GenerateButton />
+          </>
+        )}
       </section>
 
       <AccountActions />

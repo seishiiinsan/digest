@@ -60,6 +60,30 @@ export function userData(prisma: PrismaClient, userId: string) {
     updateTopic: (id: string, data: TopicInput) => prisma.topic.updateMany({ where: { id, userId }, data }),
     setTopicActive: (id: string, active: boolean) => prisma.topic.updateMany({ where: { id, userId }, data: { active } }),
     deleteTopic: (id: string) => prisma.topic.deleteMany({ where: { id, userId } }),
+
+    runs: (take = 50) =>
+      prisma.run.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take, include: { digest: { select: { id: true } } } }),
+    run: (id: string) => prisma.run.findFirst({ where: { id, userId }, include: { digest: { select: { id: true } } } }),
+    activeRun: () => prisma.run.findFirst({ where: { userId, status: { in: ["queued", "running"] } } }),
+
+    digests: (take = 30) =>
+      prisma.digest.findMany({
+        where: { userId },
+        orderBy: { createdAt: "desc" },
+        take,
+        include: { _count: { select: { items: true } } },
+      }),
+    digest: (id: string) =>
+      prisma.digest.findFirst({
+        where: { id, userId },
+        include: {
+          run: { select: { costUsd: true, model: true, error: true } },
+          items: {
+            orderBy: [{ relevance: "desc" }, { createdAt: "asc" }],
+            include: { sources: true, topic: { select: { title: true } } },
+          },
+        },
+      }),
   };
 }
 
