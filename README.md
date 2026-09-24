@@ -2,7 +2,7 @@
 
 Veille techno open source et auto-hébergeable. Chaque utilisateur choisit ses thèmes, branche sa propre clé Anthropic et reçoit chaque jour ou chaque semaine une synthèse sourcée, rédigée dans sa langue.
 
-> En développement : étape 3 (réglages) du [cahier des charges](docs/cahier-des-charges.md).
+> En développement : étape 4 (pipeline) du [cahier des charges](docs/cahier-des-charges.md).
 
 ## Lancer avec Docker
 
@@ -24,7 +24,7 @@ Les clés API et webhooks sont chiffrés en AES-256-GCM avec `ENCRYPTION_KEY`. P
 | `mailpit` | Boîte mail de test (SMTP 1025, interface 8025), en local uniquement |
 | `migrate` | Applique les migrations Prisma puis s'arrête |
 | `web` | Next.js 16 (sortie standalone), santé sur `/api/health` |
-| `worker` | Planificateur : tick toutes les minutes (génération des veilles à venir) |
+| `worker` | Planificateur (tick chaque minute) et file pg-boss qui génère les veilles avec Claude |
 
 ## Développer
 
@@ -49,6 +49,18 @@ pnpm dev:worker   # worker en mode watch
 | `pnpm build` / `pnpm build:worker` | Build Next.js / bundle du worker (`dist/worker.mjs`) |
 | `pnpm db:migrate` | Nouvelle migration à partir de `prisma/schema.prisma` |
 
+## Pipeline
+
+Le web n'appelle jamais Claude : « Générer maintenant » ou le planificateur crée un `Run` et un job pg-boss, que le worker exécute.
+
+Pour chaque thème actif :
+
+1. **Recherche** : Claude avec `web_search` et `web_fetch` (5 utilisations max chacun, domaines exclus bloqués), reprise automatique sur `pause_turn`.
+2. **Mise en forme** : second appel sans outils, sortie JSON validée par un schéma, dans la langue de l'utilisateur.
+3. **Garde-fous** : seules les URL citées ou lues à l'étape 1 sont acceptées, doublons des 30 derniers jours rejetés (`urlHash`), tri par pertinence, 10 infos max.
+
+Tokens, recherches et coût estimé sont enregistrés thème par thème sur le `Run`. Une erreur temporaire (limite de débit, API indisponible) est réessayée deux fois avec un délai croissant ; une clé invalide ou un crédit épuisé échoue tout de suite avec un message lisible.
+
 ## Structure
 
 ```
@@ -56,7 +68,8 @@ prisma/            schéma et migrations
 src/app/           Next.js (pages, routes API)
 src/lib/           code partagé web + worker (auth, emails, base)
 e2e/               parcours Playwright
-src/worker/        planificateur et jobs
+src/pipeline/      recherche, mise en forme, dédoublonnage, coûts
+src/worker/        planificateur et file pg-boss
 scripts/           build du worker
 docs/              cahier des charges
 ```

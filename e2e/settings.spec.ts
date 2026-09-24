@@ -79,3 +79,9 @@ test("planning, préférences et webhook", async ({ page }) => {
   await expect(page.getByTestId("webhook-status")).toHaveText("Discord : discord.com/api/webhooks/123456/…abcd");
   await expect(page.getByText("secret-token")).toHaveCount(0);
 });
+
+test("« Générer maintenant » explique ce qui manque", async ({ page }) => {
+  await page.goto("/tableau");
+  await page.getByRole("button", { name: "Générer maintenant" }).click();
+  await expect(page.getByRole("main").getByRole("alert")).toHaveText("Ajoutez votre clé API Anthropic dans les réglages.");
+});

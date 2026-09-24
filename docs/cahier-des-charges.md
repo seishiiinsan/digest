@@ -109,7 +109,7 @@ Le web n'appelle jamais Claude directement. Il crée un job en base, que le work
 | Topic | userId, title, description, keywords[], includeDomains[], excludeDomains[], detailLevel, active |
 | Schedule | userId, frequency (daily, weekly), weekday, hour, nextRunAt, paused |
 | Delivery | userId (un par compte), kind (discord, slack), URL chiffrée (ciphertext, iv, authTag), hint (URL masquée), active |
-| Run | userId, status, startedAt, finishedAt, inputTokens, outputTokens, searches, costUsd, error |
+| Run | userId, trigger (manual, scheduled), status, model, topicsTotal, topicsDone, startedAt, finishedAt, inputTokens, cacheWriteTokens, cacheReadTokens, outputTokens, searches, costUsd, error |
 | Digest | runId, userId, language, createdAt |
 | Item | digestId, topicId, title, category, summary, whyItMatters, relevance, urlHash, feedback, starred |
 | Source | itemId, url, title, domain, publishedAt, citedText |
