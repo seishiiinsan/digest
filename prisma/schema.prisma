@@ -1,0 +1,202 @@
+// Modèle de données de Digest. Voir docs/cahier-des-charges.md.
+// Toutes les données applicatives sont rattachées à un User et supprimées en cascade avec lui.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Frequency {
+  daily
+  weekly
+}
+
+enum DetailLevel {
+  short
+  standard
+  detailed
+}
+
+enum DeliveryKind {
+  discord
+  slack
+}
+
+enum RunStatus {
+  queued
+  running
+  succeeded
+  failed
+}
+
+enum ItemCategory {
+  release
+  announcement
+  article
+  security
+  trend
+}
+
+enum Feedback {
+  useful
+  not_useful
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  passwordHash    String
+  emailVerifiedAt DateTime?
+  locale          String    @default("fr")
+  timezone        String    @default("Europe/Paris")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  apiKey     ApiKey?
+  schedule   Schedule?
+  topics     Topic[]
+  deliveries Delivery[]
+  runs       Run[]
+  digests    Digest[]
+}
+
+// Clé Anthropic chiffrée en AES-256-GCM, jamais renvoyée au navigateur.
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  ciphertext  String
+  iv          String
+  authTag     String
+  last4       String
+  model       String    @default("claude-sonnet-5")
+  validatedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Topic {
+  id             String      @id @default(cuid())
+  userId         String
+  title          String
+  description    String      @default("")
+  keywords       String[]
+  includeDomains String[]
+  excludeDomains String[]
+  detailLevel    DetailLevel @default(standard)
+  active         Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items Item[]
+
+  @@index([userId])
+}
+
+model Schedule {
+  id        String    @id @default(cuid())
+  userId    String    @unique
+  frequency Frequency @default(daily)
+  weekday   Int? // 0 = dimanche … 6 = samedi, requis si weekly
+  hour      Int       @default(8)
+  nextRunAt DateTime?
+  paused    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([nextRunAt])
+}
+
+// Webhook Discord ou Slack, URL chiffrée comme la clé API.
+model Delivery {
+  id            String       @id @default(cuid())
+  userId        String
+  kind          DeliveryKind
+  urlCiphertext String
+  urlIv         String
+  urlAuthTag    String
+  active        Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Run {
+  id           String    @id @default(cuid())
+  userId       String
+  status       RunStatus @default(queued)
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  inputTokens  Int       @default(0)
+  outputTokens Int       @default(0)
+  searches     Int       @default(0)
+  costUsd      Decimal   @default(0) @db.Decimal(10, 4)
+  error        String?
+  createdAt    DateTime  @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  digest Digest?
+
+  @@index([userId, createdAt])
+}
+
+model Digest {
+  id        String   @id @default(cuid())
+  runId     String   @unique
+  userId    String
+  language  String
+  createdAt DateTime @default(now())
+
+  run   Run    @relation(fields: [runId], references: [id], onDelete: Cascade)
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items Item[]
+
+  @@index([userId, createdAt])
+}
+
+model Item {
+  id           String       @id @default(cuid())
+  digestId     String
+  topicId      String?
+  title        String
+  category     ItemCategory
+  summary      String
+  whyItMatters String
+  relevance    Int // 1 à 5
+  urlHash      String // SHA-256 de l'URL normalisée, pour le dédoublonnage
+  feedback     Feedback?
+  starred      Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+
+  digest  Digest   @relation(fields: [digestId], references: [id], onDelete: Cascade)
+  topic   Topic?   @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  sources Source[]
+
+  @@index([digestId])
+  @@index([urlHash])
+}
+
+model Source {
+  id          String    @id @default(cuid())
+  itemId      String
+  url         String
+  title       String
+  domain      String
+  publishedAt DateTime?
+  citedText   String?
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([itemId])
+}

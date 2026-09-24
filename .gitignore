@@ -1,0 +1,27 @@
+# dépendances
+node_modules/
+.pnpm-store/
+
+# build
+.next/
+out/
+dist/
+next-env.d.ts
+*.tsbuildinfo
+
+# prisma
+src/generated/
+
+# tests
+coverage/
+test-results/
+playwright-report/
+
+# env
+.env
+.env.*
+!.env.example
+
+# divers
+.DS_Store
+*.log
