@@ -34,7 +34,7 @@ describe("topic input", () => {
   });
 
   it("signale un titre vide ou un domaine invalide", () => {
-    expect(topicFromForm(form({ title: "" })).error?.issues[0].message).toBe("Donnez un titre au thème.");
+    expect(topicFromForm(form({ title: "" })).error?.issues[0].message).toBe("Donnez un titre à la rubrique.");
     expect(topicFromForm(form({ title: "x", excludeDomains: "exemple" })).error?.issues[0].message).toBe(
       "Domaine invalide : exemple",
     );

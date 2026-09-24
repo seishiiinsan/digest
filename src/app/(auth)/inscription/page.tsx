@@ -11,8 +11,9 @@ export default async function SignUpPage() {
   if (!signupEnabled()) {
     return (
       <section className="flex flex-col gap-4">
-        <h1 className="text-2xl font-semibold">Inscriptions fermées</h1>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="kicker text-accent">Abonnements clos</p>
+        <h1 className="text-3xl font-semibold leading-tight tracking-tight">Inscriptions fermées</h1>
+        <p className="text-lg text-ink-2">
           Cette instance n&apos;accepte pas de nouveaux comptes. Digest est open source : vous pouvez héberger la vôtre.
         </p>
       </section>

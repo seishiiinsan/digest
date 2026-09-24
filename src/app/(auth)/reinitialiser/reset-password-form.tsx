@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AuthHeading } from "@/components/auth-heading";
 import { Field, Message, SubmitButton } from "@/components/form";
 import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
@@ -29,8 +30,8 @@ export function ResetPasswordForm({ token }: { token: string }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Nouveau mot de passe</h1>
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      <AuthHeading kicker="Nouveau mot de passe" title="Choisissez-en un solide." />
       {error && <Message tone="error">{error}</Message>}
       <Field
         label={`Nouveau mot de passe (${MIN_PASSWORD_LENGTH} caractères minimum)`}
@@ -41,7 +42,9 @@ export function ResetPasswordForm({ token }: { token: string }) {
         required
       />
       <Field label="Confirmation" name="confirm" type="password" autoComplete="new-password" required />
-      <SubmitButton pending={pending}>Enregistrer</SubmitButton>
+      <div>
+        <SubmitButton pending={pending}>Enregistrer</SubmitButton>
+      </div>
     </form>
   );
 }

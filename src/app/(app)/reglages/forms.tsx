@@ -1,14 +1,14 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { ActionMessage, Field, Select, SubmitButton } from "@/components/form";
+import { ActionMessage, Checkbox, Field, Select, SubmitButton } from "@/components/form";
 import { idle } from "@/lib/action-state";
 import { LANGUAGES } from "@/lib/languages";
 import { DEFAULT_MODEL, MODELS } from "@/lib/models";
 import { deleteApiKey, deleteDelivery, saveApiKey, saveDelivery, savePreferences, saveSchedule, testDelivery } from "./actions";
 
-const secondary = "self-start rounded-lg border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700";
-const modelOptions = MODELS.map((m) => ({ value: m.id, label: `${m.label} · ${m.input} $ / ${m.output} $ par M tokens · ${m.hint}` }));
+const secondary = "btn btn-ghost btn-small";
+const modelOptions = MODELS.map((m) => ({ value: m.id, label: `${m.label} · ${m.input} $ / ${m.output} $ par M tokens` }));
 const weekdayOptions = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"].map((label, value) => ({
   value: String(value),
   label,
@@ -21,11 +21,12 @@ export function ApiKeyForm({ current }: { current: { last4: string; model: strin
 
   return (
     <div className="flex flex-col gap-4">
-      <form action={action} className="flex flex-col gap-4">
+      <form action={action} className="flex flex-col gap-6">
         <ActionMessage state={state} />
         {current && (
-          <p className="text-sm" data-testid="api-key-status">
-            Clé enregistrée : <span className="font-mono">sk-ant-…{current.last4}</span>
+          <p className="flex flex-wrap items-center gap-3 text-base" data-testid="api-key-status">
+            <span className="stamp text-ok">Clé vérifiée</span>
+            <span className="font-mono">sk-ant-…{current.last4}</span>
           </p>
         )}
         <Field
@@ -37,7 +38,17 @@ export function ApiKeyForm({ current }: { current: { last4: string; model: strin
           required={!current}
         />
         <Select label="Modèle" name="model" defaultValue={current?.model ?? DEFAULT_MODEL} options={modelOptions} />
-        <SubmitButton pending={pending}>{current ? "Enregistrer" : "Tester et enregistrer"}</SubmitButton>
+        <ul className="grid gap-2 text-sm text-ink-2 sm:grid-cols-3">
+          {MODELS.map((m) => (
+            <li key={m.id} className="border-l-2 border-rule pl-3">
+              <span className="block font-medium text-ink">{m.label}</span>
+              {m.hint}
+            </li>
+          ))}
+        </ul>
+        <div>
+          <SubmitButton pending={pending}>{current ? "Enregistrer" : "Tester et enregistrer"}</SubmitButton>
+        </div>
       </form>
       {current && (
         <form action={deleteAction} className="flex flex-col gap-2">
@@ -54,11 +65,13 @@ export function ApiKeyForm({ current }: { current: { last4: string; model: strin
 export function PreferencesForm({ locale, timezone, timeZones }: { locale: string; timezone: string; timeZones: string[] }) {
   const [state, action, pending] = useActionState(savePreferences, idle);
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} className="flex flex-col gap-6">
       <ActionMessage state={state} />
-      <Select label="Langue des veilles" name="locale" defaultValue={locale} options={LANGUAGES.map((l) => ({ value: l.code, label: l.label }))} />
+      <Select label="Langue des éditions" name="locale" defaultValue={locale} options={LANGUAGES.map((l) => ({ value: l.code, label: l.label }))} />
       <Select label="Fuseau horaire" name="timezone" defaultValue={timezone} options={timeZones.map((tz) => ({ value: tz, label: tz }))} />
-      <SubmitButton pending={pending}>Enregistrer</SubmitButton>
+      <div>
+        <SubmitButton pending={pending}>Enregistrer</SubmitButton>
+      </div>
     </form>
   );
 }
@@ -75,14 +88,14 @@ export function ScheduleForm({ current, nextRun }: { current: ScheduleValues | n
   const [frequency, setFrequency] = useState(current?.frequency ?? "daily");
 
   return (
-    <form action={action} className="flex flex-col gap-4">
+    <form action={action} className="flex flex-col gap-6">
       <ActionMessage state={state} />
       {nextRun && (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400" data-testid="next-run">
-          Prochaine veille : {nextRun}
+        <p className="border-l-4 border-accent pl-4 font-display text-xl italic" data-testid="next-run">
+          Prochaine édition : {nextRun}
         </p>
       )}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-3">
         <Select
           label="Fréquence"
           name="frequency"
@@ -98,11 +111,10 @@ export function ScheduleForm({ current, nextRun }: { current: ScheduleValues | n
         )}
         <Select label="Heure" name="hour" defaultValue={String(current?.hour ?? 8)} options={hourOptions} />
       </div>
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" name="paused" defaultChecked={current?.paused ?? false} />
-        Mettre en pause
-      </label>
-      <SubmitButton pending={pending}>Enregistrer</SubmitButton>
+      <Checkbox label="Mettre la parution en pause" name="paused" defaultChecked={current?.paused ?? false} />
+      <div>
+        <SubmitButton pending={pending}>Enregistrer</SubmitButton>
+      </div>
     </form>
   );
 }
@@ -114,10 +126,10 @@ export function DeliveryForm({ current }: { current: { kind: string; hint: strin
 
   return (
     <div className="flex flex-col gap-4">
-      <form action={action} className="flex flex-col gap-4">
+      <form action={action} className="flex flex-col gap-6">
         <ActionMessage state={state} />
         {current && (
-          <p className="text-sm" data-testid="webhook-status">
+          <p className="flex flex-wrap items-center gap-3 font-mono text-sm" data-testid="webhook-status">
             {current.kind === "discord" ? "Discord" : "Slack"} : <span className="font-mono">{current.hint}</span>
           </p>
         )}
@@ -129,7 +141,9 @@ export function DeliveryForm({ current }: { current: { kind: string; hint: strin
           placeholder="https://discord.com/api/webhooks/…"
           required
         />
-        <SubmitButton pending={pending}>Enregistrer le webhook</SubmitButton>
+        <div>
+          <SubmitButton pending={pending}>Enregistrer le webhook</SubmitButton>
+        </div>
       </form>
       {current && (
         <div className="flex flex-col gap-2">

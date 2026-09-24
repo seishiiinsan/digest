@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { PageHeader } from "@/components/form";
 import { requireUserData } from "@/lib/session";
 import { updateTopic } from "../actions";
 import { TopicForm } from "../topic-form";
 
-export const metadata: Metadata = { title: "Modifier le thème · Digest" };
+export const metadata: Metadata = { title: "Modifier la rubrique · Digest" };
 
 export default async function EditTopicPage({ params }: PageProps<"/themes/[id]">) {
   const { id } = await params;
@@ -14,7 +15,7 @@ export default async function EditTopicPage({ params }: PageProps<"/themes/[id]"
 
   return (
     <>
-      <h1 className="text-2xl font-semibold">Modifier le thème</h1>
+      <PageHeader kicker="Modifier la rubrique" title={topic.title} />
       <TopicForm action={updateTopic.bind(null, topic.id)} initial={topic} submitLabel="Enregistrer" />
     </>
   );

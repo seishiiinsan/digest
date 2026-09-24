@@ -27,7 +27,7 @@ function footer(item: DeliveryItem): string {
 export function discordPayloads(message: DigestMessage): object[] {
   const intro = message.items.length
     ? `**${message.heading}** · ${message.items.length} info(s) · ${message.digestUrl}`
-    : `**${message.heading}** · rien de nouveau sur vos thèmes.`;
+    : `**${message.heading}** · rien de nouveau sur vos rubriques.`;
   const payloads: { username: string; content: string; embeds: object[]; allowed_mentions: object }[] = [];
   let current = { username: "Digest", content: intro, embeds: [] as object[], allowed_mentions: { parse: [] } };
   let size = intro.length;
@@ -70,7 +70,7 @@ export function slackPayloads(message: DigestMessage): object[] {
   }));
   const intro = message.items.length
     ? `${message.items.length} info(s) · <${message.digestUrl}|lire dans Digest>`
-    : "Rien de nouveau sur vos thèmes.";
+    : "Rien de nouveau sur vos rubriques.";
   const header = [
     { type: "header", text: { type: "plain_text", text: truncate(message.heading, 150) } },
     { type: "context", elements: [{ type: "mrkdwn", text: intro }] },

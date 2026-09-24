@@ -21,7 +21,7 @@ export async function startRun(
   });
   if (!user.emailVerified) return { ok: false, message: "Vérifiez votre adresse email avant votre première veille." };
   if (!user.apiKey) return { ok: false, message: "Ajoutez votre clé API Anthropic dans les réglages." };
-  if (user._count.topics === 0) return { ok: false, message: "Activez au moins un thème." };
+  if (user._count.topics === 0) return { ok: false, message: "Activez au moins une rubrique." };
 
   const pending = await prisma.run.findFirst({ where: { userId, status: { in: ["queued", "running"] } } });
   if (pending) return { ok: false, message: "Une veille est déjà en cours de génération." };

@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageHeader } from "@/components/form";
 import { requireUserData } from "@/lib/session";
 import { TOPIC_TEMPLATES } from "@/lib/topic-templates";
 import { createFromTemplate, deleteTopic, setTopicActive } from "./actions";
 
-export const metadata: Metadata = { title: "Thèmes · Digest" };
+export const metadata: Metadata = { title: "Rubriques · Digest" };
 
-const button = "rounded-lg border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700";
+const DETAIL_LABEL = { short: "brèves", standard: "articles", detailed: "dossiers" } as const;
 
 export default async function TopicsPage() {
   const { data } = await requireUserData();
@@ -14,63 +15,73 @@ export default async function TopicsPage() {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Thèmes</h1>
-        <Link
-          href="/themes/nouveau"
-          className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
-        >
-          Nouveau thème
+      <div className="flex flex-wrap items-end justify-between gap-6">
+        <PageHeader kicker="Les rubriques" title="Ce que votre journal couvre.">
+          Une rubrique par sujet suivi : Claude cherche, vérifie et résume ce qui s&apos;y est passé depuis la dernière édition.
+        </PageHeader>
+        <Link href="/themes/nouveau" className="btn">
+          Nouvelle rubrique
         </Link>
       </div>
 
       {topics.length === 0 ? (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">Aucun thème pour l&apos;instant. Créez-en un ou partez d&apos;un modèle.</p>
+        <p className="font-display text-2xl italic text-ink-2">Aucune rubrique pour l&apos;instant. Créez-en une ou partez d&apos;un modèle.</p>
       ) : (
-        <ul className="flex flex-col gap-3">
-          {topics.map((topic) => (
+        <ol className="flex flex-col border-t-2 border-ink">
+          {topics.map((topic, index) => (
             <li
               key={topic.id}
               data-testid="topic"
-              className="flex flex-col gap-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-800"
+              className={`rule-hair grid gap-4 py-6 first:border-t-0 sm:grid-cols-[3rem_1fr_auto] ${topic.active ? "" : "opacity-60"}`}
             >
-              <div className="flex flex-wrap items-baseline justify-between gap-2">
-                <h2 className="font-medium">{topic.title}</h2>
-                {!topic.active && <span className="text-xs uppercase text-zinc-500">désactivé</span>}
+              <span className="font-display text-3xl italic text-accent tabular">{String(index + 1).padStart(2, "0")}</span>
+              <div className="flex min-w-0 flex-col gap-2">
+                <div className="flex flex-wrap items-baseline gap-3">
+                  <h2 className="text-2xl font-semibold leading-tight">{topic.title}</h2>
+                  {!topic.active && <span className="stamp -rotate-2 text-accent">désactivé</span>}
+                </div>
+                {topic.description && <p className="text-base leading-snug text-ink-2">{topic.description}</p>}
+                <p className="kicker normal-case tracking-normal">
+                  {topic.keywords.length > 0 && <span className="text-ink-2">{topic.keywords.join(" · ")}</span>}
+                  {topic.keywords.length > 0 && " — "}
+                  en {DETAIL_LABEL[topic.detailLevel]}
+                  {topic.includeDomains.length > 0 && ` · priorité à ${topic.includeDomains.slice(0, 3).join(", ")}`}
+                </p>
               </div>
-              {topic.description && <p className="text-sm text-zinc-600 dark:text-zinc-400">{topic.description}</p>}
-              {topic.keywords.length > 0 && <p className="text-xs text-zinc-500">{topic.keywords.join(" · ")}</p>}
-              <div className="flex flex-wrap gap-2">
-                <Link href={`/themes/${topic.id}`} className={button}>
+              <div className="flex flex-wrap items-start gap-2 sm:justify-end">
+                <Link href={`/themes/${topic.id}`} className="btn btn-small btn-ghost">
                   Modifier
                 </Link>
                 <form action={setTopicActive.bind(null, topic.id, !topic.active)}>
-                  <button type="submit" className={button}>
+                  <button type="submit" className="btn btn-small btn-ghost">
                     {topic.active ? "Désactiver" : "Activer"}
                   </button>
                 </form>
                 <form action={deleteTopic.bind(null, topic.id)}>
-                  <button type="submit" className={button}>
+                  <button type="submit" className="btn btn-small btn-ghost btn-danger">
                     Supprimer
                   </button>
                 </form>
               </div>
             </li>
           ))}
-        </ul>
+        </ol>
       )}
 
-      <section className="flex flex-col gap-3">
-        <h2 className="font-medium">Modèles prêts</h2>
-        <div className="grid gap-3 sm:grid-cols-2">
+      <section className="flex flex-col gap-5">
+        <div className="rule-double pt-3">
+          <p className="kicker text-accent">Rubriques prêtes à l&apos;emploi</p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
           {TOPIC_TEMPLATES.map((template) => (
             <form key={template.slug} action={createFromTemplate.bind(null, template.slug)}>
               <button
                 type="submit"
-                className="flex h-full w-full flex-col gap-1 rounded-xl border border-dashed border-zinc-300 p-4 text-left text-sm dark:border-zinc-700"
+                className="group flex h-full w-full flex-col gap-2 border-2 border-dashed border-ink-3 p-5 text-left transition-colors hover:border-accent hover:bg-paper-2"
               >
-                <span className="font-medium">+ {template.title}</span>
-                <span className="text-zinc-600 dark:text-zinc-400">{template.description}</span>
+                <span className="font-display text-xl font-semibold group-hover:text-accent">+ {template.title}</span>
+                <span className="text-base leading-snug text-ink-2">{template.description}</span>
+                <span className="kicker normal-case tracking-normal">{template.keywords.join(" · ")}</span>
               </button>
             </form>
           ))}

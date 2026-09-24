@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageHeader } from "@/components/form";
 import { ItemCard } from "@/components/item-card";
-import { formatDateTime } from "@/lib/format";
+import { formatLongDate, formatTime } from "@/lib/format";
 import { requireUserData } from "@/lib/session";
 
-export const metadata: Metadata = { title: "Veilles · Digest" };
+export const metadata: Metadata = { title: "Éditions · Digest" };
 
 const PAGE_SIZE = 30;
 
@@ -23,7 +24,7 @@ export default async function FeedPage({ searchParams }: PageProps<"/veilles">) 
   ]);
   const filtered = Boolean(query || starred || topicId);
 
-  // Regroupement par veille, dans l'ordre du fil.
+  // Regroupement par édition, dans l'ordre du fil.
   const groups: { digestId: string; createdAt: Date; items: typeof items }[] = [];
   for (const item of items) {
     const last = groups.at(-1);
@@ -31,28 +32,33 @@ export default async function FeedPage({ searchParams }: PageProps<"/veilles">) 
     else groups.push({ digestId: item.digest.id, createdAt: item.digest.createdAt, items: [item] });
   }
 
-  const more = new URLSearchParams({ ...(query && { q: query }), ...(starred && { favoris: "1" }), ...(topicId && { theme: topicId }), page: String(page + 1) });
+  const more = new URLSearchParams({
+    ...(query && { q: query }),
+    ...(starred && { favoris: "1" }),
+    ...(topicId && { theme: topicId }),
+    page: String(page + 1),
+  });
 
   return (
     <>
-      <h1 className="text-2xl font-semibold">Veilles</h1>
+      <PageHeader kicker="Les éditions" title="Tout ce qui a compté, édition par édition.">
+        Dépliez un titre pour lire l&apos;article et ses sources. Vos notes affinent les éditions suivantes.
+      </PageHeader>
 
       {/* key : remet les champs à zéro quand les filtres changent (navigation côté client). */}
-      <form key={`${query}|${topicId}|${starred}`} className="flex flex-wrap items-end gap-3 text-sm" role="search">
-        <label className="flex flex-1 flex-col gap-1.5">
-          <span className="font-medium">Rechercher</span>
-          <input
-            name="q"
-            type="search"
-            defaultValue={query}
-            placeholder="React, CVE, Kubernetes…"
-            className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 dark:border-zinc-700"
-          />
+      <form
+        key={`${query}|${topicId}|${starred}`}
+        role="search"
+        className="grid items-end gap-5 border-y-2 border-ink py-5 sm:grid-cols-[1fr_12rem_auto_auto]"
+      >
+        <label className="flex flex-col gap-1">
+          <span className="kicker text-ink-2">Rechercher</span>
+          <input name="q" type="search" defaultValue={query} placeholder="React, CVE, Kubernetes…" className="field" />
         </label>
-        <label className="flex flex-col gap-1.5">
-          <span className="font-medium">Thème</span>
-          <select name="theme" defaultValue={topicId} className="rounded-lg border border-zinc-300 bg-white px-3 py-2 dark:border-zinc-700 dark:bg-zinc-950">
-            <option value="">Tous</option>
+        <label className="flex flex-col gap-1">
+          <span className="kicker text-ink-2">Rubrique</span>
+          <select name="theme" defaultValue={topicId} className="field">
+            <option value="">Toutes les rubriques</option>
             {topics.map((topic) => (
               <option key={topic.id} value={topic.id}>
                 {topic.title}
@@ -60,50 +66,57 @@ export default async function FeedPage({ searchParams }: PageProps<"/veilles">) 
             ))}
           </select>
         </label>
-        <label className="flex items-center gap-2 py-2">
-          <input type="checkbox" name="favoris" value="1" defaultChecked={starred} />
+        <label className="flex cursor-pointer items-center gap-2.5 pb-2 text-base">
+          <input type="checkbox" name="favoris" value="1" defaultChecked={starred} className="checkbox" />
           Favoris
         </label>
-        <button type="submit" className="rounded-lg bg-zinc-900 px-4 py-2 font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
-          Filtrer
-        </button>
-        {filtered && (
-          <Link href="/veilles" className="py-2 text-zinc-500 underline underline-offset-4">
-            Réinitialiser
-          </Link>
-        )}
+        <div className="flex items-center gap-4">
+          <button type="submit" className="btn">
+            Filtrer
+          </button>
+          {filtered && (
+            <Link href="/veilles" className="link text-base">
+              Réinitialiser
+            </Link>
+          )}
+        </div>
       </form>
 
       {items.length === 0 ? (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="font-display text-2xl italic text-ink-2">
           {filtered ? (
             "Aucune info ne correspond à ces filtres."
           ) : (
             <>
-              Aucune veille pour l&apos;instant. Lancez-en une depuis le{" "}
-              <Link href="/tableau" className="underline underline-offset-4">
-                tableau de bord
+              Aucune édition pour l&apos;instant. Lancez la première depuis la{" "}
+              <Link href="/tableau" className="link">
+                rédaction
               </Link>
               .
             </>
           )}
         </p>
       ) : (
-        <div className="flex flex-col gap-8">
-          {groups.map((group) => (
-            <section key={group.digestId} className="flex flex-col gap-3">
-              <h2 className="text-sm font-medium text-zinc-500">
-                <Link href={`/veilles/${group.digestId}`} className="hover:underline">
-                  Veille du {formatDateTime(group.createdAt, profile.timezone)}
-                </Link>
-              </h2>
-              {group.items.map((item) => (
-                <ItemCard key={item.id} item={item} timeZone={profile.timezone} />
+        <div className="flex flex-col gap-14">
+          {groups.map((group, groupIndex) => (
+            <section key={group.digestId} className="flex flex-col">
+              <div className="rule-thick flex flex-wrap items-baseline justify-between gap-2 pt-2">
+                <h2 className="font-display text-xl font-semibold first-letter:uppercase">
+                  <Link href={`/veilles/${group.digestId}`} className="hover:text-accent">
+                    {formatLongDate(group.createdAt, profile.timezone)}
+                  </Link>
+                </h2>
+                <span className="kicker">
+                  Édition de {formatTime(group.createdAt, profile.timezone)} · {group.items.length} info(s)
+                </span>
+              </div>
+              {group.items.map((item, index) => (
+                <ItemCard key={item.id} item={item} timeZone={profile.timezone} lead={!filtered && groupIndex === 0 && index === 0} />
               ))}
             </section>
           ))}
           {total > items.length && (
-            <Link href={`/veilles?${more}`} className="self-start text-sm underline underline-offset-4">
+            <Link href={`/veilles?${more}`} className="btn btn-ghost self-center">
               Voir plus ({total - items.length} restantes)
             </Link>
           )}
