@@ -1,5 +1,5 @@
-import type { PrismaClient } from "@/generated/prisma/client";
-import { encrypt } from "@/lib/crypto";
+import type { Feedback, PrismaClient } from "@/generated/prisma/client";
+import { decrypt, encrypt } from "@/lib/crypto";
 import type { ScheduleRule } from "@/lib/schedule";
 import { nextRunAt } from "@/lib/schedule";
 import type { WebhookKind } from "@/lib/webhook";
@@ -14,6 +14,19 @@ export interface TopicInput {
   excludeDomains: string[];
   detailLevel: "short" | "standard" | "detailed";
 }
+
+export interface FeedFilters {
+  query?: string;
+  starred?: boolean;
+  topicId?: string;
+  take?: number;
+}
+
+const itemInclude = {
+  sources: true,
+  topic: { select: { title: true } },
+  digest: { select: { id: true, createdAt: true } },
+} as const;
 
 export function userData(prisma: PrismaClient, userId: string) {
   return {
@@ -53,6 +66,12 @@ export function userData(prisma: PrismaClient, userId: string) {
       return prisma.delivery.upsert({ where: { userId }, create: { userId, ...data }, update: data });
     },
     deleteDelivery: () => prisma.delivery.deleteMany({ where: { userId } }),
+    // URL déchiffrée : uniquement côté serveur, jamais renvoyée au navigateur.
+    deliveryTarget: async () => {
+      const row = await prisma.delivery.findUnique({ where: { userId } });
+      if (!row) return null;
+      return { kind: row.kind, url: decrypt({ ciphertext: row.urlCiphertext, iv: row.urlIv, authTag: row.urlAuthTag }) };
+    },
 
     topics: () => prisma.topic.findMany({ where: { userId }, orderBy: { createdAt: "asc" } }),
     topic: (id: string) => prisma.topic.findFirst({ where: { id, userId } }),
@@ -65,6 +84,41 @@ export function userData(prisma: PrismaClient, userId: string) {
       prisma.run.findMany({ where: { userId }, orderBy: { createdAt: "desc" }, take, include: { digest: { select: { id: true } } } }),
     run: (id: string) => prisma.run.findFirst({ where: { id, userId }, include: { digest: { select: { id: true } } } }),
     activeRun: () => prisma.run.findFirst({ where: { userId, status: { in: ["queued", "running"] } } }),
+
+    // Fil de lecture : infos de toutes les veilles, les plus récentes d'abord.
+    feed: async ({ query, starred, topicId, take = 30 }: FeedFilters) => {
+      let ids: string[] | undefined;
+      if (query?.trim()) {
+        // Même expression que l'index GIN de la migration « lecture ».
+        const rows = await prisma.$queryRaw<{ id: string }[]>`
+          SELECT i.id FROM "Item" i JOIN "Digest" d ON d.id = i."digestId"
+          WHERE d."userId" = ${userId}
+            AND to_tsvector('simple', i."title" || ' ' || i."summary" || ' ' || i."whyItMatters") @@ websearch_to_tsquery('simple', ${query.trim()})
+          ORDER BY d."createdAt" DESC
+          LIMIT 500`;
+        ids = rows.map((row) => row.id);
+      }
+      const where = {
+        digest: { userId },
+        ...(ids && { id: { in: ids } }),
+        ...(starred && { starred: true }),
+        ...(topicId && { topicId }),
+      };
+      const [items, total] = await Promise.all([
+        prisma.item.findMany({
+          where,
+          orderBy: [{ digest: { createdAt: "desc" } }, { relevance: "desc" }, { createdAt: "asc" }],
+          take,
+          include: itemInclude,
+        }),
+        prisma.item.count({ where }),
+      ]);
+      return { items, total };
+    },
+    setStarred: (itemId: string, starred: boolean) =>
+      prisma.item.updateMany({ where: { id: itemId, digest: { userId } }, data: { starred } }),
+    setFeedback: (itemId: string, feedback: Feedback | null) =>
+      prisma.item.updateMany({ where: { id: itemId, digest: { userId } }, data: { feedback } }),
 
     digests: (take = 30) =>
       prisma.digest.findMany({
@@ -80,7 +134,7 @@ export function userData(prisma: PrismaClient, userId: string) {
           run: { select: { costUsd: true, model: true, error: true } },
           items: {
             orderBy: [{ relevance: "desc" }, { createdAt: "asc" }],
-            include: { sources: true, topic: { select: { title: true } } },
+            include: itemInclude,
           },
         },
       }),

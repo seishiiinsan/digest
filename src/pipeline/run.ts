@@ -11,6 +11,8 @@ import { costUsd, sumUsage } from "./usage";
 const DAY = 24 * 60 * 60 * 1000;
 const DEDUP_WINDOW = 30 * DAY;
 const MAX_KNOWN_URLS = 50;
+const FEEDBACK_WINDOW = 90 * DAY;
+const MAX_FEEDBACK = 10;
 
 export interface PipelineDeps {
   prisma: PrismaClient;
@@ -71,7 +73,17 @@ export async function runDigest({ prisma, createClient = defaultClient, now = ()
     const brief: TopicBrief = topic;
     let usage;
     try {
-      const found = await research(client, model, brief, since, startedAt, knownUrls);
+      const rated = await prisma.item.findMany({
+        where: { topicId: topic.id, feedback: { not: null }, createdAt: { gte: new Date(startedAt.getTime() - FEEDBACK_WINDOW) } },
+        orderBy: { createdAt: "desc" },
+        select: { title: true, feedback: true },
+        take: 2 * MAX_FEEDBACK,
+      });
+      const feedback = {
+        useful: rated.filter((i) => i.feedback === "useful").map((i) => i.title).slice(0, MAX_FEEDBACK),
+        notUseful: rated.filter((i) => i.feedback === "not_useful").map((i) => i.title).slice(0, MAX_FEEDBACK),
+      };
+      const found = await research(client, model, brief, since, startedAt, knownUrls, feedback);
       const formatted = await format(client, model, brief, user.locale, found.notes, found.sources);
       usage = sumUsage(found.usage, formatted.usage);
       for (const item of selectItems(formatted.items, found.sources, seenHashes)) {

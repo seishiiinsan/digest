@@ -1,5 +1,4 @@
-import { expect, test } from "@playwright/test";
-import { signUpAndVerify, uniqueEmail } from "./helpers";
+import { expect, signUpAndVerify, test, uniqueEmail } from "./helpers";
 
 test.beforeEach(async ({ page }) => {
   await signUpAndVerify(page, uniqueEmail());

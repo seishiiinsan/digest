@@ -5,7 +5,7 @@ import { ActionMessage, Field, Select, SubmitButton } from "@/components/form";
 import { idle } from "@/lib/action-state";
 import { LANGUAGES } from "@/lib/languages";
 import { DEFAULT_MODEL, MODELS } from "@/lib/models";
-import { deleteApiKey, deleteDelivery, saveApiKey, saveDelivery, savePreferences, saveSchedule } from "./actions";
+import { deleteApiKey, deleteDelivery, saveApiKey, saveDelivery, savePreferences, saveSchedule, testDelivery } from "./actions";
 
 const secondary = "self-start rounded-lg border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700";
 const modelOptions = MODELS.map((m) => ({ value: m.id, label: `${m.label} · ${m.input} $ / ${m.output} $ par M tokens · ${m.hint}` }));
@@ -110,6 +110,7 @@ export function ScheduleForm({ current, nextRun }: { current: ScheduleValues | n
 export function DeliveryForm({ current }: { current: { kind: string; hint: string } | null }) {
   const [state, action, pending] = useActionState(saveDelivery, idle);
   const [deleteState, deleteAction, deleting] = useActionState(deleteDelivery, idle);
+  const [testState, testAction, testing] = useActionState(testDelivery, idle);
 
   return (
     <div className="flex flex-col gap-4">
@@ -131,12 +132,22 @@ export function DeliveryForm({ current }: { current: { kind: string; hint: strin
         <SubmitButton pending={pending}>Enregistrer le webhook</SubmitButton>
       </form>
       {current && (
-        <form action={deleteAction} className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
+          <ActionMessage state={testState} />
           <ActionMessage state={deleteState} />
-          <button type="submit" className={secondary} disabled={deleting}>
-            Supprimer le webhook
-          </button>
-        </form>
+          <div className="flex flex-wrap gap-2">
+            <form action={testAction}>
+              <button type="submit" className={secondary} disabled={testing}>
+                {testing ? "Envoi…" : "Envoyer un message de test"}
+              </button>
+            </form>
+            <form action={deleteAction}>
+              <button type="submit" className={secondary} disabled={deleting}>
+                Supprimer le webhook
+              </button>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

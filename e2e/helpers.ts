@@ -1,5 +1,16 @@
-import { expect, type Page } from "@playwright/test";
+import { test as base, expect, type Page } from "@playwright/test";
 import { waitForLink } from "./mailpit";
+
+// Chaque test simule une IP différente : la limite de débit par IP (inscriptions) ne se cumule pas entre tests.
+export const test = base.extend({
+  page: async ({ page }, provide) => {
+    const octet = () => Math.floor(Math.random() * 250) + 1;
+    await page.setExtraHTTPHeaders({ "x-forwarded-for": `10.${octet()}.${octet()}.${octet()}` });
+    await provide(page);
+  },
+});
+
+export { expect };
 
 export const password = "Digest-e2e-mot-de-passe-7431";
 

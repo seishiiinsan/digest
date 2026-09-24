@@ -80,3 +80,16 @@ describe("research", () => {
     expect(webTools("claude-haiku-4-5", topic).map((t) => t.type)).toEqual(["web_search_20250305", "web_fetch_20250910"]);
   });
 });
+
+describe("researchPrompt", () => {
+  it("transmet les retours du lecteur", async () => {
+    const { researchPrompt } = await import("./prompts");
+    const prompt = researchPrompt(topic, new Date("2026-09-17"), new Date("2026-09-24"), [], {
+      useful: ["Next.js 16 stable"],
+      notUseful: ["Levée de fonds de Vercel"],
+    });
+    expect(prompt).toContain("Period: from 2026-09-17 to 2026-09-24");
+    expect(prompt).toContain("found these past items useful, favor similar news:\n- Next.js 16 stable");
+    expect(prompt).toContain("not useful, avoid similar news:\n- Levée de fonds de Vercel");
+  });
+});

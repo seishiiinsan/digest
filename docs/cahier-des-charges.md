@@ -110,11 +110,13 @@ Le web n'appelle jamais Claude directement. Il crée un job en base, que le work
 | Schedule | userId, frequency (daily, weekly), weekday, hour, nextRunAt, paused |
 | Delivery | userId (un par compte), kind (discord, slack), URL chiffrée (ciphertext, iv, authTag), hint (URL masquée), active |
 | Run | userId, trigger (manual, scheduled), status, model, topicsTotal, topicsDone, startedAt, finishedAt, inputTokens, cacheWriteTokens, cacheReadTokens, outputTokens, searches, costUsd, error |
-| Digest | runId, userId, language, createdAt |
+| Digest | runId, userId, language, deliveredAt, deliveryError, createdAt |
 | Item | digestId, topicId, title, category, summary, whyItMatters, relevance, urlHash, feedback, starred |
 | Source | itemId, url, title, domain, publishedAt, citedText |
 
 User, Session, Account, Verification et RateLimit suivent le schéma de Better Auth.
+
+La recherche plein texte s'appuie sur un index GIN (config `simple`) sur titre, résumé et « pourquoi c'est important ».
 
 `urlHash` (SHA-256 de l'URL normalisée) sert au dédoublonnage d'une veille à l'autre. Toutes les requêtes filtrent sur `userId`.
 

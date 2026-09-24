@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { fail, ok, type ActionState } from "@/lib/action-state";
 import { checkApiKey } from "@/lib/anthropic-key";
+import { DeliveryError, payloadsFor, sendWebhook } from "@/lib/delivery";
 import { isLanguage } from "@/lib/languages";
 import { isModelId } from "@/lib/models";
 import { isValidTimeZone } from "@/lib/schedule";
@@ -90,4 +91,21 @@ export async function deleteDelivery(): Promise<ActionState> {
   const { data } = await requireUserData();
   await data.deleteDelivery();
   return done("Webhook supprimé.");
+}
+
+export async function testDelivery(): Promise<ActionState> {
+  const { data } = await requireUserData();
+  const target = await data.deliveryTarget();
+  if (!target) return fail("Aucun webhook enregistré.");
+  const message = {
+    heading: "Digest : message de test",
+    digestUrl: process.env.APP_URL ?? "http://localhost:3000",
+    items: [],
+  };
+  try {
+    await sendWebhook(target.url, target.kind, payloadsFor(target.kind, message));
+  } catch (error) {
+    return fail(error instanceof DeliveryError ? error.message : "Envoi impossible.");
+  }
+  return ok("Message de test envoyé.");
 }

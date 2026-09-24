@@ -44,7 +44,19 @@ function isoDay(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-export function researchPrompt(topic: TopicBrief, since: Date, now: Date, knownUrls: string[]): string {
+// Retours du lecteur sur les veilles précédentes, pour affiner les suivantes.
+export interface ReaderFeedback {
+  useful: string[];
+  notUseful: string[];
+}
+
+export function researchPrompt(
+  topic: TopicBrief,
+  since: Date,
+  now: Date,
+  knownUrls: string[],
+  feedback: ReaderFeedback = { useful: [], notUseful: [] },
+): string {
   const lines = [
     `Topic: ${topic.title}`,
     topic.description && `Description: ${topic.description}`,
@@ -52,6 +64,9 @@ export function researchPrompt(topic: TopicBrief, since: Date, now: Date, knownU
     topic.includeDomains.length > 0 && `Preferred sources (check them first): ${topic.includeDomains.join(", ")}`,
     `Period: from ${isoDay(since)} to ${isoDay(now)}`,
     knownUrls.length > 0 && `Already covered, do not report again:\n${knownUrls.map((url) => `- ${url}`).join("\n")}`,
+    feedback.useful.length > 0 && `The reader found these past items useful, favor similar news:\n${feedback.useful.map((t) => `- ${t}`).join("\n")}`,
+    feedback.notUseful.length > 0 &&
+      `The reader found these past items not useful, avoid similar news:\n${feedback.notUseful.map((t) => `- ${t}`).join("\n")}`,
   ];
   return lines.filter(Boolean).join("\n");
 }
