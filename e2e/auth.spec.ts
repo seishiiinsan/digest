@@ -1,5 +1,4 @@
-import { expect, test } from "@playwright/test";
-import { password, signIn, signUpAndVerify, uniqueEmail } from "./helpers";
+import { expect, password, signIn, signUpAndVerify, test, uniqueEmail } from "./helpers";
 import { waitForLink } from "./mailpit";
 
 test("inscription, vérification de l'email, déconnexion puis connexion", async ({ page }) => {

@@ -1,4 +1,5 @@
 import { defineConfig, devices } from "@playwright/test";
+import "dotenv/config";
 
 // Parcours de bout en bout sur le build de production.
 // Prérequis : `docker compose up -d db mailpit`, migrations appliquées, `pnpm build`.
