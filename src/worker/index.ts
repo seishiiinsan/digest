@@ -1,16 +1,31 @@
+import type { JobWithMetadata } from "pg-boss";
 import { getPrisma } from "@/lib/db";
+import { createBoss, ensureQueue, GENERATE_QUEUE, type GenerateJob } from "@/lib/jobs";
+import { handleGenerate } from "./generate";
 import { tick } from "./tick";
 import { startTicker } from "./ticker";
 
 const prisma = getPrisma();
 await prisma.$queryRaw`SELECT 1`;
-console.log("[worker] connecté à la base, tick toutes les minutes");
 
-const ticker = startTicker((now) => tick(prisma, now));
+const boss = createBoss({ supervise: true });
+boss.on("error", (error) => console.error("[pg-boss]", error));
+await boss.start();
+await ensureQueue(boss);
+
+await boss.work(
+  GENERATE_QUEUE,
+  { includeMetadata: true, batchSize: 1, localConcurrency: 2, pollingIntervalSeconds: 2 },
+  async ([job]: JobWithMetadata<GenerateJob>[]) => handleGenerate({ prisma }, job),
+);
+
+const ticker = startTicker((now) => tick(prisma, boss, now));
+console.log("[worker] prêt : file de génération et planificateur actifs");
 
 async function shutdown(signal: string) {
   console.log(`[worker] ${signal} reçu, arrêt`);
   await ticker.stop();
+  await boss.stop({ graceful: true, timeout: 30_000 });
   await prisma.$disconnect();
   process.exit(0);
 }
