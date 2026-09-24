@@ -1,7 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { supportsDynamicWebTools } from "@/lib/models";
 import { TopicRefusedError } from "./errors";
-import { RESEARCH_SYSTEM, researchPrompt, type TopicBrief } from "./prompts";
+import { RESEARCH_SYSTEM, researchPrompt, type ReaderFeedback, type TopicBrief } from "./prompts";
 import { addUsage, emptyUsage, type UsageTotals } from "./usage";
 
 export type MessagesClient = Pick<Anthropic, "messages">;
@@ -87,8 +87,9 @@ export async function research(
   since: Date,
   now: Date,
   knownUrls: string[],
+  feedback?: ReaderFeedback,
 ): Promise<ResearchResult> {
-  const prompt = researchPrompt(topic, since, now, knownUrls);
+  const prompt = researchPrompt(topic, since, now, knownUrls, feedback);
   const assistantContent: Anthropic.ContentBlock[] = [];
   let usage = emptyUsage();
 
