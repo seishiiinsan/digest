@@ -238,5 +238,5 @@ Toutes les règles reposent sur un même préfixe de type, de la branche jusqu'�
 - [x] **Instance de démo** : inscriptions ouvertes à tous, chacun avec sa clé (`SIGNUP_ENABLED` permet de les fermer).
 - [x] **Auth.js ou Better Auth** : Better Auth, qui gère nativement email + mot de passe, vérification et reset.
 - [ ] **Batch API** : la génération n'est pas urgente, l'API Batch diviserait le coût par 2. À vérifier : compatibilité avec les outils de recherche web.
-- [ ] **Licence** : MIT (réutilisation libre) ou AGPL (les forks hébergés restent ouverts) ?
-- [ ] **VPS cible** : le même que celui d'Onbo, ou un séparé ? Domaine de la démo : digest.gabin-hallosserie.com.
+- [x] **Licence** : AGPL-3.0-or-later, pour que les versions hébergées modifiées restent ouvertes.
+- [x] **VPS cible** : un VPS Debian séparé de celui d'Onbo, préparé par `deploy/setup-debian.sh`. Domaine de la démo : digest.gabin-hallosserie.com.
