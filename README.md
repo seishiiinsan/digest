@@ -2,7 +2,7 @@
 
 Veille techno open source et auto-hébergeable. Chaque utilisateur choisit ses thèmes, branche sa propre clé Anthropic et reçoit chaque jour ou chaque semaine une synthèse sourcée, rédigée dans sa langue.
 
-> En développement : étape 4 (pipeline) du [cahier des charges](docs/cahier-des-charges.md).
+> En développement : étape 5 (lecture et livraison) du [cahier des charges](docs/cahier-des-charges.md).
 
 ## Lancer avec Docker
 
@@ -24,7 +24,7 @@ Les clés API et webhooks sont chiffrés en AES-256-GCM avec `ENCRYPTION_KEY`. P
 | `mailpit` | Boîte mail de test (SMTP 1025, interface 8025), en local uniquement |
 | `migrate` | Applique les migrations Prisma puis s'arrête |
 | `web` | Next.js 16 (sortie standalone), santé sur `/api/health` |
-| `worker` | Planificateur (tick chaque minute) et file pg-boss qui génère les veilles avec Claude |
+| `worker` | Planificateur (tick chaque minute) et files pg-boss : génération avec Claude, envoi au webhook |
 
 ## Développer
 
@@ -58,6 +58,10 @@ Pour chaque thème actif :
 1. **Recherche** : Claude avec `web_search` et `web_fetch` (5 utilisations max chacun, domaines exclus bloqués), reprise automatique sur `pause_turn`.
 2. **Mise en forme** : second appel sans outils, sortie JSON validée par un schéma, dans la langue de l'utilisateur.
 3. **Garde-fous** : seules les URL citées ou lues à l'étape 1 sont acceptées, doublons des 30 derniers jours rejetés (`urlHash`), tri par pertinence, 10 infos max.
+
+Les notes « utile / pas utile » des 90 derniers jours sont transmises à la recherche suivante du même thème.
+
+Une fois la veille enregistrée, un job de livraison l'envoie au webhook Discord (embeds) ou Slack (blocs) du compte. L'envoi a ses propres reprises : un webhook en panne ne fait pas échouer la veille, l'erreur est affichée sur la veille.
 
 Tokens, recherches et coût estimé sont enregistrés thème par thème sur le `Run`. Une erreur temporaire (limite de débit, API indisponible) est réessayée deux fois avec un délai croissant ; une clé invalide ou un crédit épuisé échoue tout de suite avec un message lisible.
 
