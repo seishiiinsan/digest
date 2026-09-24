@@ -1,0 +1,16 @@
+{$DOMAIN} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Content-Security-Policy "frame-ancestors 'none'"
+		-Server
+	}
+
+	# L'IP du client écrase tout X-Forwarded-For reçu : la limite de débit par IP ne peut pas être contournée.
+	reverse_proxy web:3000 {
+		header_up X-Forwarded-For {remote_host}
+	}
+}

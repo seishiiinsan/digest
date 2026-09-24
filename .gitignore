@@ -25,3 +25,6 @@ playwright-report/
 # divers
 .DS_Store
 *.log
+
+# sauvegardes de production
+backups/

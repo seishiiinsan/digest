@@ -30,6 +30,8 @@ test("fil : détail dépliable, favoris, notes et recherche", async ({ page }) =
   await expect(page.getByTestId("digest-item")).toContainText("React 20");
 
   await page.getByRole("link", { name: "Réinitialiser" }).click();
+  await expect(page).toHaveURL(/\/veilles$/);
+  await expect(page.getByTestId("digest-item")).toHaveCount(2);
   await page.getByLabel("Rechercher").fill("infobulles");
   await page.getByRole("button", { name: "Filtrer" }).click();
   await expect(page.getByTestId("digest-item")).toHaveCount(1);
