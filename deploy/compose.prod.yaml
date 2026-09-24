@@ -1,0 +1,79 @@
+# Surcouche de production, à combiner avec compose.yaml (Docker Compose ≥ 2.24) :
+#   docker compose -f compose.yaml -f deploy/compose.prod.yaml up -d
+# Seul Caddy est exposé (80/443, HTTPS automatique). Secrets obligatoires dans .env.
+
+x-prod-env: &prod-env
+  DATABASE_URL: postgresql://${POSTGRES_USER:-digest}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis}@db:5432/${POSTGRES_DB:-digest}
+  APP_URL: https://${DOMAIN:?DOMAIN requis}
+  BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET requis (openssl rand -base64 32)}
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY:?ENCRYPTION_KEY requis (openssl rand -base64 32)}
+  SMTP_URL: ${SMTP_URL:?SMTP_URL requis}
+  MAIL_FROM: ${MAIL_FROM:?MAIL_FROM requis}
+  PASSWORD_BREACH_CHECK: ${PASSWORD_BREACH_CHECK:-true}
+  SIGNUP_ENABLED: ${SIGNUP_ENABLED:-true}
+  ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+
+x-prod-app: &prod-app
+  image: ghcr.io/seishiiinsan/digest:${DIGEST_VERSION:-latest}
+  environment: *prod-env
+
+services:
+  db:
+    ports: !reset []
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis}
+
+  mailpit:
+    profiles: ["dev"]
+
+  migrate:
+    <<: *prod-app
+    build: !reset null
+
+  web:
+    <<: *prod-app
+    build: !reset null
+    ports: !reset []
+
+  worker:
+    <<: *prod-app
+    build: !reset null
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN requis}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+
+  # Sauvegarde pg_dump quotidienne dans ./backups, 14 jours conservés.
+  backup:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      PGHOST: db
+      PGUSER: ${POSTGRES_USER:-digest}
+      PGPASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis}
+      PGDATABASE: ${POSTGRES_DB:-digest}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - ./deploy/backup.sh:/usr/local/bin/backup.sh:ro
+      - ./backups:/backups
+    entrypoint: ["/bin/sh", "/usr/local/bin/backup.sh"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  caddy-data:
+  caddy-config:
