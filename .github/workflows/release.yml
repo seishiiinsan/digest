@@ -46,6 +46,14 @@ jobs:
         with:
           fetch-depth: 0
       - run: sh scripts/release-notes.sh "$GITHUB_REF_NAME" > notes.md
-      - run: gh release create "$GITHUB_REF_NAME" --title "Digest $GITHUB_REF_NAME" --notes-file notes.md --verify-tag
+      # La release peut déjà exister si elle a été publiée depuis l'interface GitHub (ce qui crée le tag) :
+      # on complète alors son titre et ses notes au lieu d'échouer.
+      - name: Créer ou compléter la release
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --title "Digest $GITHUB_REF_NAME" --notes-file notes.md
+          else
+            gh release create "$GITHUB_REF_NAME" --title "Digest $GITHUB_REF_NAME" --notes-file notes.md --verify-tag
+          fi
         env:
           GH_TOKEN: ${{ github.token }}

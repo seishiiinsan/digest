@@ -160,4 +160,4 @@ docs/              cahier des charges, captures
 
 ## Contribuer
 
-Conventions de branches, commits (`<type>: <description>`), PR et releases : voir le [cahier des charges](docs/cahier-des-charges.md#conventions-git). Pousser un tag `vX.Y.Z` sur `main` publie l'image `ghcr.io/seishiiinsan/digest:vX.Y.Z` (et `latest`) et crée la release GitHub avec ses notes.
+Conventions de branches, commits (`<type>: <description>`), PR et releases : voir le [cahier des charges](docs/cahier-des-charges.md#conventions-git). Pousser un tag `vX.Y.Z` sur `main`, ou publier une release `vX.Y.Z` depuis l'interface GitHub, publie l'image `ghcr.io/seishiiinsan/digest:vX.Y.Z` (et `latest`) et crée la release GitHub avec ses notes.
