@@ -72,9 +72,9 @@ export default async function Home() {
       </section>
 
       <footer className="border-t border-zinc-200 pt-6 text-sm text-zinc-500 dark:border-zinc-800">
-        En construction.{" "}
+        Logiciel libre sous licence AGPL-3.0 ·{" "}
         <a className="underline underline-offset-4" href="https://github.com/seishiiinsan/digest">
-          Code source sur GitHub
+          code source sur GitHub
         </a>
       </footer>
     </main>

@@ -2,6 +2,7 @@
   "name": "digest",
   "version": "0.1.0",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "description": "Veille techno open source et auto-hébergeable, synthétisée par Claude",
   "type": "module",
   "packageManager": "pnpm@10.33.0",
