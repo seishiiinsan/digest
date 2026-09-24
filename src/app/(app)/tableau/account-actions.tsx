@@ -6,8 +6,6 @@ import { Field, Message, SubmitButton } from "@/components/form";
 import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
 
-const secondary = "rounded-lg border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700";
-
 export function AccountActions() {
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -38,26 +36,27 @@ export function AccountActions() {
 
   return (
     <>
-      <section className="flex flex-col gap-3 border-t border-zinc-200 pt-8 dark:border-zinc-800">
-        <h2 className="font-medium">Sessions</h2>
-        <div className="flex flex-wrap gap-3">
-          <button type="button" className={secondary} disabled={pending} onClick={() => signOut(false)}>
-            Se déconnecter
-          </button>
-          <button type="button" className={secondary} disabled={pending} onClick={() => signOut(true)}>
-            Déconnecter tous les appareils
-          </button>
-        </div>
-      </section>
+      <div className="flex flex-wrap gap-3">
+        <button type="button" className="btn btn-ghost" disabled={pending} onClick={() => signOut(false)}>
+          Se déconnecter
+        </button>
+        <button type="button" className="btn btn-ghost" disabled={pending} onClick={() => signOut(true)}>
+          Déconnecter tous les appareils
+        </button>
+      </div>
 
-      <form onSubmit={deleteAccount} className="flex flex-col gap-3 border-t border-zinc-200 pt-8 dark:border-zinc-800">
-        <h2 className="font-medium">Supprimer le compte</h2>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Supprime votre compte, votre clé API, vos thèmes et toutes vos veilles. Irréversible.
-        </p>
+      <form onSubmit={deleteAccount} className="flex flex-col gap-4 border border-dashed border-ink-3 p-5">
+        <p className="kicker text-accent">Supprimer le compte</p>
+        <p className="text-base text-ink-2">Votre compte, votre clé API, vos rubriques et toutes vos éditions seront effacés. Irréversible.</p>
         {error && <Message tone="error">{error}</Message>}
-        <Field label="Mot de passe" name="password" type="password" autoComplete="current-password" required />
-        <SubmitButton pending={pending}>Supprimer mon compte</SubmitButton>
+        <div className="max-w-sm">
+          <Field label="Mot de passe" name="password" type="password" autoComplete="current-password" required />
+        </div>
+        <div>
+          <SubmitButton pending={pending} className="btn-ghost btn-danger">
+            Supprimer mon compte
+          </SubmitButton>
+        </div>
       </form>
     </>
   );

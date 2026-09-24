@@ -11,7 +11,9 @@ export function GenerateButton() {
     <form action={action} className="flex flex-col gap-3">
       <ActionMessage state={state} />
       <div>
-        <SubmitButton pending={pending}>Générer maintenant</SubmitButton>
+        <SubmitButton pending={pending} className="px-6 py-3.5 text-[0.85rem]">
+          Générer maintenant
+        </SubmitButton>
       </div>
     </form>
   );

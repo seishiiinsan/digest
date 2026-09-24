@@ -36,7 +36,7 @@ const domainList = z.string().transform((value, ctx) => {
 });
 
 export const topicSchema = z.object({
-  title: z.string().trim().min(1, "Donnez un titre au thème.").max(80, "Titre trop long (80 caractères max)."),
+  title: z.string().trim().min(1, "Donnez un titre à la rubrique.").max(80, "Titre trop long (80 caractères max)."),
   description: z.string().trim().max(1000, "Description trop longue (1000 caractères max)."),
   keywords: z.string().transform((value) => parseList(value)),
   includeDomains: domainList,

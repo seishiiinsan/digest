@@ -33,7 +33,7 @@ export async function runDigest({ prisma, createClient = defaultClient, now = ()
   if (!user.apiKey) throw new PipelineError("Aucune clé API enregistrée.", false);
 
   const topics = await prisma.topic.findMany({ where: { userId: user.id, active: true }, orderBy: { createdAt: "asc" } });
-  if (topics.length === 0) throw new PipelineError("Aucun thème actif.", false);
+  if (topics.length === 0) throw new PipelineError("Aucune rubrique active.", false);
 
   const startedAt = now();
   const model = user.apiKey.model;

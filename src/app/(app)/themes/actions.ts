@@ -18,7 +18,7 @@ export async function createTopic(_: ActionState, form: FormData): Promise<Actio
   const { data } = await requireUserData();
   const parsed = topicFromForm(form);
   if (!parsed.success) return fail(parsed.error.issues[0].message);
-  if ((await data.topics()).length >= MAX_TOPICS) return fail(`${MAX_TOPICS} thèmes maximum.`);
+  if ((await data.topics()).length >= MAX_TOPICS) return fail(`${MAX_TOPICS} rubriques maximum.`);
   await data.createTopic(parsed.data);
   refresh();
   redirect("/themes");
@@ -29,7 +29,7 @@ export async function updateTopic(id: string, _: ActionState, form: FormData): P
   const parsed = topicFromForm(form);
   if (!parsed.success) return fail(parsed.error.issues[0].message);
   const { count } = await data.updateTopic(id, parsed.data);
-  if (!count) return fail("Thème introuvable.");
+  if (!count) return fail("Rubrique introuvable.");
   refresh();
   redirect("/themes");
 }

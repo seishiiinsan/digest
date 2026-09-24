@@ -14,7 +14,7 @@ export class PipelineError extends Error {
 
 export class TopicRefusedError extends Error {
   constructor(readonly topic: string) {
-    super(`Claude a refusé de traiter le thème « ${topic} ».`);
+    super(`Claude a refusé de traiter la rubrique « ${topic} ».`);
     this.name = "TopicRefusedError";
   }
 }

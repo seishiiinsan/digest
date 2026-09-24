@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AuthHeading } from "@/components/auth-heading";
 import { Field, Message, SubmitButton } from "@/components/form";
 import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
@@ -26,8 +27,8 @@ export function ForgotPasswordForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Mot de passe oublié</h1>
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      <AuthHeading kicker="Mot de passe oublié" title="On vous renvoie la clé." />
       {sent ? (
         // Même réponse que l'adresse existe ou non.
         <Message tone="success">Si un compte existe pour cette adresse, un lien valable 30 minutes vient d&apos;être envoyé.</Message>
@@ -35,10 +36,12 @@ export function ForgotPasswordForm() {
         <>
           {error && <Message tone="error">{error}</Message>}
           <Field label="Email" name="email" type="email" autoComplete="email" required />
-          <SubmitButton pending={pending}>Envoyer le lien</SubmitButton>
+          <div>
+            <SubmitButton pending={pending}>Envoyer le lien</SubmitButton>
+          </div>
         </>
       )}
-      <Link href="/connexion" className="text-sm text-zinc-500 underline underline-offset-4">
+      <Link href="/connexion" className="link self-start text-base text-ink-2">
         Retour à la connexion
       </Link>
     </form>

@@ -16,9 +16,9 @@ Démo : [digest.gabin-hallosserie.com](https://digest.gabin-hallosserie.com) (in
 - **Suivi** : historique des exécutions, erreurs lisibles, tokens et coût de chaque veille.
 - **Votre clé, votre coût** : la clé Anthropic de chaque compte est testée, chiffrée (AES-256-GCM) et jamais renvoyée au navigateur.
 
-| Thèmes | Réglages |
+| Rubriques | Réglages |
 | --- | --- |
-| ![Thèmes](docs/captures/themes.png) | ![Réglages](docs/captures/reglages.png) |
+| ![Rubriques](docs/captures/themes.png) | ![Réglages](docs/captures/reglages.png) |
 
 ## Architecture
 

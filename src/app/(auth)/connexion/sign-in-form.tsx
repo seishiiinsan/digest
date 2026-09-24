@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AuthHeading } from "@/components/auth-heading";
 import { Field, Message, SubmitButton } from "@/components/form";
 import { authClient } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
@@ -31,18 +32,18 @@ export function SignInForm({ passwordReset }: { passwordReset: boolean }) {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      <h1 className="text-2xl font-semibold">Connexion</h1>
+    <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      <AuthHeading kicker="Accès abonné" title="Votre édition vous attend." />
       {passwordReset && !error && <Message tone="success">Mot de passe modifié. Vous pouvez vous connecter.</Message>}
       {error && <Message tone="error">{error}</Message>}
       <Field label="Email" name="email" type="email" autoComplete="email" required />
       <Field label="Mot de passe" name="password" type="password" autoComplete="current-password" required />
       <SubmitButton pending={pending}>Se connecter</SubmitButton>
-      <div className="flex justify-between text-sm text-zinc-500">
-        <Link href="/mot-de-passe-oublie" className="underline underline-offset-4">
+      <div className="flex flex-wrap justify-between gap-3 text-base text-ink-2">
+        <Link href="/mot-de-passe-oublie" className="link">
           Mot de passe oublié
         </Link>
-        <Link href="/inscription" className="underline underline-offset-4">
+        <Link href="/inscription" className="link">
           Créer un compte
         </Link>
       </div>
