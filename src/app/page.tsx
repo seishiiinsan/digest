@@ -1,3 +1,6 @@
+import Link from "next/link";
+import { getSession } from "@/lib/session";
+
 const features = [
   {
     title: "Vos thèmes",
@@ -15,7 +18,9 @@ const features = [
 
 const steps = ["Créez un compte", "Ajoutez votre clé Anthropic", "Choisissez vos thèmes", "Recevez votre veille"];
 
-export default function Home() {
+export default async function Home() {
+  const session = await getSession();
+
   return (
     <main className="mx-auto flex max-w-3xl flex-col gap-16 px-6 py-20">
       <header className="flex flex-col gap-6">
@@ -27,6 +32,22 @@ export default function Home() {
           Digest remplace les newsletters et flux RSS par une synthèse courte de vos sujets, rédigée par Claude
           dans votre langue, livrée dans l&apos;app, sur Discord ou sur Slack.
         </p>
+        <div className="flex gap-3">
+          {session ? (
+            <Link href="/tableau" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+              Mon tableau de bord
+            </Link>
+          ) : (
+            <>
+              <Link href="/inscription" className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+                Créer un compte
+              </Link>
+              <Link href="/connexion" className="rounded-lg border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700">
+                Se connecter
+              </Link>
+            </>
+          )}
+        </div>
       </header>
 
       <section className="grid gap-6 sm:grid-cols-3">
