@@ -1,23 +1,25 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 
-const control =
-  "rounded-lg border border-zinc-300 bg-transparent px-3 py-2 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-100";
+function Label({ children }: { children: ReactNode }) {
+  return <span className="kicker text-ink-2">{children}</span>;
+}
 
-export function Field({ label, ...input }: { label: string } & InputHTMLAttributes<HTMLInputElement>) {
+export function Field({ label, hint, ...input }: { label: string; hint?: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm">
-      <span className="font-medium">{label}</span>
-      <input className={control} {...input} />
+    <label className="flex flex-col gap-1">
+      <Label>{label}</Label>
+      <input className="field" {...input} />
+      {hint && <span className="text-sm italic text-ink-3">{hint}</span>}
     </label>
   );
 }
 
 export function TextArea({ label, hint, ...input }: { label: string; hint?: string } & TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm">
-      <span className="font-medium">{label}</span>
-      <textarea className={control} rows={3} {...input} />
-      {hint && <span className="text-xs text-zinc-500">{hint}</span>}
+    <label className="flex flex-col gap-1.5">
+      <Label>{label}</Label>
+      <textarea className="field-box" rows={3} {...input} />
+      {hint && <span className="text-sm italic text-ink-3">{hint}</span>}
     </label>
   );
 }
@@ -28,9 +30,9 @@ export function Select({
   ...select
 }: { label: string; options: readonly { value: string; label: string }[] } & SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm">
-      <span className="font-medium">{label}</span>
-      <select className={`${control} bg-white dark:bg-zinc-950`} {...select}>
+    <label className="flex flex-col gap-1">
+      <Label>{label}</Label>
+      <select className="field" {...select}>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -41,43 +43,73 @@ export function Select({
   );
 }
 
-export function ActionMessage({ state }: { state: { status: string; message?: string } }) {
-  if (state.status === "idle" || !state.message) return null;
-  return <Message tone={state.status === "error" ? "error" : "success"}>{state.message}</Message>;
-}
-
-export function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+export function Checkbox({ label, ...input }: { label: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
-    <section className="flex flex-col gap-4 border-t border-zinc-200 pt-8 first:border-0 first:pt-0 dark:border-zinc-800">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        {description && <p className="text-sm text-zinc-600 dark:text-zinc-400">{description}</p>}
-      </div>
-      {children}
-    </section>
+    <label className="flex cursor-pointer items-center gap-2.5 text-base">
+      <input type="checkbox" className="checkbox" {...input} />
+      {label}
+    </label>
   );
 }
 
-export function SubmitButton({ pending, children }: { pending: boolean; children: ReactNode }) {
+export function SubmitButton({ pending, children, className = "" }: { pending: boolean; children: ReactNode; className?: string }) {
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-60 dark:bg-zinc-100 dark:text-zinc-900"
-    >
+    <button type="submit" disabled={pending} className={`btn ${className}`}>
       {pending ? "Un instant…" : children}
     </button>
   );
 }
 
 export function Message({ tone, children }: { tone: "error" | "success"; children: ReactNode }) {
-  const colors =
-    tone === "error"
-      ? "border-red-300 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950 dark:text-red-200"
-      : "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-200";
+  const error = tone === "error";
   return (
-    <p role={tone === "error" ? "alert" : "status"} className={`rounded-lg border px-3 py-2 text-sm ${colors}`}>
-      {children}
-    </p>
+    <div className={`flex flex-wrap items-baseline gap-x-2 border-l-4 bg-paper-2 px-4 py-3 ${error ? "border-accent" : "border-ok"}`}>
+      <span aria-hidden className={`kicker ${error ? "text-accent" : "text-ok"}`}>
+        {error ? "Erratum" : "Bon à tirer"}
+      </span>
+      <p role={error ? "alert" : "status"} className="text-base">
+        {children}
+      </p>
+    </div>
+  );
+}
+
+export function ActionMessage({ state }: { state: { status: string; message?: string } }) {
+  if (state.status === "idle" || !state.message) return null;
+  return <Message tone={state.status === "error" ? "error" : "success"}>{state.message}</Message>;
+}
+
+// Section de page à la manière d'une rubrique : numéro et titre en marge, contenu à droite.
+export function Section({
+  number,
+  title,
+  description,
+  children,
+}: {
+  number?: string;
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rule-hair grid gap-6 pt-8 md:grid-cols-[14rem_1fr] md:gap-10">
+      <div className="flex flex-col gap-2">
+        {number && <span className="font-display text-3xl italic text-accent">{number}</span>}
+        <h2 className="text-2xl font-semibold leading-tight">{title}</h2>
+        {description && <p className="text-base leading-snug text-ink-2">{description}</p>}
+      </div>
+      <div className="flex min-w-0 flex-col gap-5">{children}</div>
+    </section>
+  );
+}
+
+// En-tête de page : surtitre en capitales, grand titre, chapeau.
+export function PageHeader({ kicker, title, children }: { kicker: string; title: ReactNode; children?: ReactNode }) {
+  return (
+    <header className="flex flex-col gap-3">
+      <p className="kicker text-accent">{kicker}</p>
+      <h1 className="text-4xl font-semibold leading-[1.02] tracking-tight sm:text-5xl">{title}</h1>
+      {children && <div className="max-w-2xl text-lg leading-snug text-ink-2">{children}</div>}
+    </header>
   );
 }
