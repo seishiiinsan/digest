@@ -2,7 +2,7 @@
 
 Veille techno open source et auto-hébergeable. Chaque utilisateur choisit ses thèmes, branche sa propre clé Anthropic et reçoit chaque jour ou chaque semaine une synthèse sourcée, rédigée dans sa langue.
 
-> En développement : étape 2 (comptes) du [cahier des charges](docs/cahier-des-charges.md).
+> En développement : étape 3 (réglages) du [cahier des charges](docs/cahier-des-charges.md).
 
 ## Lancer avec Docker
 
@@ -14,7 +14,9 @@ docker compose up
 
 L'app répond sur http://localhost:3000 et les emails (confirmation d'adresse, mot de passe oublié) arrivent dans Mailpit sur http://localhost:8025.
 
-Les valeurs par défaut suffisent en local. Sur un serveur, copiez `.env.example` en `.env` et changez au moins `POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET` (`openssl rand -base64 32`), `APP_URL` et `SMTP_URL`.
+Les valeurs par défaut suffisent en local. Sur un serveur, copiez `.env.example` en `.env` et changez au moins `POSTGRES_PASSWORD`, `BETTER_AUTH_SECRET` et `ENCRYPTION_KEY` (chacun : `openssl rand -base64 32`), `APP_URL` et `SMTP_URL`.
+
+Les clés API et webhooks sont chiffrés en AES-256-GCM avec `ENCRYPTION_KEY`. Pour la changer sans perdre les secrets : `OLD_ENCRYPTION_KEY=<ancienne> ENCRYPTION_KEY=<nouvelle> pnpm rotate-key`, puis redémarrer `web` et `worker`.
 
 | Service | Rôle |
 | --- | --- |
@@ -42,6 +44,7 @@ pnpm dev:worker   # worker en mode watch
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | Types des routes Next + `tsc` |
 | `pnpm test` | Vitest |
+| `pnpm test:integration` | Vitest contre la base (isolation des comptes, chiffrement) |
 | `pnpm test:e2e` | Playwright sur le build (`pnpm build` avant, db et mailpit lancés) |
 | `pnpm build` / `pnpm build:worker` | Build Next.js / bundle du worker (`dist/worker.mjs`) |
 | `pnpm db:migrate` | Nouvelle migration à partir de `prisma/schema.prisma` |
