@@ -11,13 +11,18 @@ export function formatTime(date: Date, timeZone: string): string {
   return new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone }).format(date);
 }
 
+// Intl sépare les milliers par une espace fine insécable (U+202F), absente des polices de titre : espace insécable classique.
+function fr(value: number, options?: Intl.NumberFormatOptions): string {
+  return value.toLocaleString("fr-FR", options).replace(/\u202f/g, "\u00a0");
+}
+
 export function formatUsd(value: number | { toString(): string }): string {
   const amount = typeof value === "number" ? value : Number(value.toString());
-  return `${amount.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 4 })} $`;
+  return `${fr(amount, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}\u00a0$`;
 }
 
 export function formatTokens(value: number): string {
-  return value.toLocaleString("fr-FR");
+  return fr(value);
 }
 
 export const RUN_STATUS_LABEL = {
