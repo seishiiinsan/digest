@@ -108,7 +108,7 @@ Le web n'appelle jamais Claude directement. Il crée un job en base, que le work
 | ApiKey | userId, ciphertext, iv, authTag, last4, model, validatedAt |
 | Topic | userId, title, description, keywords[], includeDomains[], excludeDomains[], detailLevel, active |
 | Schedule | userId, frequency (daily, weekly), weekday, hour, nextRunAt, paused |
-| Delivery | userId, kind (discord, slack), webhookUrl (chiffré), active |
+| Delivery | userId (un par compte), kind (discord, slack), URL chiffrée (ciphertext, iv, authTag), hint (URL masquée), active |
 | Run | userId, status, startedAt, finishedAt, inputTokens, outputTokens, searches, costUsd, error |
 | Digest | runId, userId, language, createdAt |
 | Item | digestId, topicId, title, category, summary, whyItMatters, relevance, urlHash, feedback, starred |
