@@ -9,5 +9,8 @@ export default defineConfig({
   test: {
     include: ["src/**/*.int.test.ts"],
     setupFiles: ["dotenv/config"],
+    // Les fichiers partagent la base : le tick du planificateur d'un fichier réserverait
+    // les plannings échus de l'autre. Exécution séquentielle.
+    fileParallelism: false,
   },
 });
