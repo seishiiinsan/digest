@@ -10,6 +10,16 @@ x-app-env: &app-env
   SMTP_URL: ${SMTP_URL:-smtp://mailpit:1025}
   MAIL_FROM: ${MAIL_FROM:-Digest <digest@localhost>}
   PASSWORD_BREACH_CHECK: ${PASSWORD_BREACH_CHECK:-true}
+  SIGNUP_ENABLED: ${SIGNUP_ENABLED:-true}
+  ADMIN_EMAILS: ${ADMIN_EMAILS:-}
+
+# Une seule image pour web, worker et migrations.
+x-app: &app
+  image: ${DIGEST_IMAGE:-digest:local}
+  build:
+    context: .
+    target: app
+  environment: *app-env
 
 services:
   db:
@@ -39,20 +49,16 @@ services:
       - "127.0.0.1:${SMTP_PORT:-1025}:1025"
 
   migrate:
-    build:
-      context: .
-      target: migrate
-    environment: *app-env
+    <<: *app
+    working_dir: /app/migrate
+    command: ["node_modules/.bin/prisma", "migrate", "deploy"]
     depends_on:
       db:
         condition: service_healthy
 
   web:
-    build:
-      context: .
-      target: web
+    <<: *app
     restart: unless-stopped
-    environment: *app-env
     ports:
       - "${WEB_PORT:-3000}:3000"
     depends_on:
@@ -66,11 +72,9 @@ services:
       retries: 3
 
   worker:
-    build:
-      context: .
-      target: worker
+    <<: *app
+    command: ["node", "--enable-source-maps", "worker/worker.mjs"]
     restart: unless-stopped
-    environment: *app-env
     depends_on:
       migrate:
         condition: service_completed_successfully
