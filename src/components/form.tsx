@@ -1,14 +1,60 @@
-import type { InputHTMLAttributes, ReactNode } from "react";
+import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+
+const control =
+  "rounded-lg border border-zinc-300 bg-transparent px-3 py-2 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-100";
 
 export function Field({ label, ...input }: { label: string } & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <label className="flex flex-col gap-1.5 text-sm">
       <span className="font-medium">{label}</span>
-      <input
-        className="rounded-lg border border-zinc-300 bg-transparent px-3 py-2 outline-none focus:border-zinc-900 dark:border-zinc-700 dark:focus:border-zinc-100"
-        {...input}
-      />
+      <input className={control} {...input} />
     </label>
+  );
+}
+
+export function TextArea({ label, hint, ...input }: { label: string; hint?: string } & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <label className="flex flex-col gap-1.5 text-sm">
+      <span className="font-medium">{label}</span>
+      <textarea className={control} rows={3} {...input} />
+      {hint && <span className="text-xs text-zinc-500">{hint}</span>}
+    </label>
+  );
+}
+
+export function Select({
+  label,
+  options,
+  ...select
+}: { label: string; options: readonly { value: string; label: string }[] } & SelectHTMLAttributes<HTMLSelectElement>) {
+  return (
+    <label className="flex flex-col gap-1.5 text-sm">
+      <span className="font-medium">{label}</span>
+      <select className={`${control} bg-white dark:bg-zinc-950`} {...select}>
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+export function ActionMessage({ state }: { state: { status: string; message?: string } }) {
+  if (state.status === "idle" || !state.message) return null;
+  return <Message tone={state.status === "error" ? "error" : "success"}>{state.message}</Message>;
+}
+
+export function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-4 border-t border-zinc-200 pt-8 first:border-0 first:pt-0 dark:border-zinc-800">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {description && <p className="text-sm text-zinc-600 dark:text-zinc-400">{description}</p>}
+      </div>
+      {children}
+    </section>
   );
 }
 

@@ -64,7 +64,7 @@ model User {
   apiKey     ApiKey?
   schedule   Schedule?
   topics     Topic[]
-  deliveries Delivery[]
+  delivery   Delivery?
   runs       Run[]
   digests    Digest[]
 }
@@ -178,8 +178,9 @@ model Schedule {
 // Webhook Discord ou Slack, URL chiffrée comme la clé API.
 model Delivery {
   id            String       @id @default(cuid())
-  userId        String
+  userId        String       @unique
   kind          DeliveryKind
+  hint          String // version masquée de l'URL, seule partie affichée
   urlCiphertext String
   urlIv         String
   urlAuthTag    String
@@ -188,8 +189,6 @@ model Delivery {
   updatedAt     DateTime     @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }
 
 model Run {
