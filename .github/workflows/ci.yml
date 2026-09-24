@@ -38,6 +38,7 @@ jobs:
       APP_URL: http://localhost:3000
       BETTER_AUTH_SECRET: ci-secret-uniquement-pour-les-tests-e2e
       SMTP_URL: smtp://localhost:1025
+      ENCRYPTION_KEY: Y2ktZW5jcnlwdGlvbi1rZXktMzItb2N0ZXRzLW9rISE=
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
@@ -48,6 +49,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: docker compose up -d --wait db mailpit
       - run: pnpm db:deploy
+      - run: pnpm test:integration
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
