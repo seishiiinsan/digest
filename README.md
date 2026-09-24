@@ -56,7 +56,14 @@ L'app répond sur http://localhost:3000 et les emails (confirmation d'adresse, m
 
 ## Déployer sur un VPS
 
-Prérequis : un serveur avec Docker (Compose ≥ 2.24), les ports 80 et 443 ouverts, et un enregistrement DNS `A` (et `AAAA`) du domaine vers le serveur.
+Prérequis : un enregistrement DNS `A` (et `AAAA`) du domaine vers le serveur, et Docker (Compose ≥ 2.24) avec les ports 80 et 443 ouverts. Sur un VPS Debian vierge, `deploy/setup-debian.sh` prépare tout en une commande (utilisateur avec clé SSH, SSH par clé uniquement, pare-feu, mises à jour de sécurité automatiques, Docker, swap) :
+
+```bash
+# en root, après avoir déposé votre clé SSH publique pour root
+curl -fsSL https://raw.githubusercontent.com/seishiiinsan/digest/main/deploy/setup-debian.sh | sh -s -- gabin
+```
+
+Ensuite, connecté avec cet utilisateur :
 
 ```bash
 git clone https://github.com/seishiiinsan/digest.git && cd digest
@@ -146,6 +153,10 @@ e2e/               parcours Playwright
 deploy/            production : Compose, Caddy, sauvegardes
 docs/              cahier des charges, captures
 ```
+
+## Licence
+
+[AGPL-3.0-or-later](LICENSE). Vous pouvez utiliser, modifier et héberger Digest ; si vous proposez une version modifiée en ligne, vous devez en publier le code source sous la même licence.
 
 ## Contribuer
 
