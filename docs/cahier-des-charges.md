@@ -235,8 +235,8 @@ Toutes les règles reposent sur un même préfixe de type, de la branche jusqu'�
 ## Questions ouvertes
 
 - [x] **Emails transactionnels** : SMTP (`SMTP_URL`), celui du VPS en production, Mailpit en local et en CI.
-- [ ] **Instance de démo** : inscriptions ouvertes à tous (chacun avec sa clé), ou sur invitation pour limiter les abus ?
+- [x] **Instance de démo** : inscriptions ouvertes à tous, chacun avec sa clé (`SIGNUP_ENABLED` permet de les fermer).
 - [x] **Auth.js ou Better Auth** : Better Auth, qui gère nativement email + mot de passe, vérification et reset.
 - [ ] **Batch API** : la génération n'est pas urgente, l'API Batch diviserait le coût par 2. À vérifier : compatibilité avec les outils de recherche web.
 - [ ] **Licence** : MIT (réutilisation libre) ou AGPL (les forks hébergés restent ouverts) ?
-- [ ] **VPS cible** : le même que celui d'Onbo, ou un séparé ? Nom de domaine de la démo (par exemple digest.gabin-hallosserie.com) ?
+- [ ] **VPS cible** : le même que celui d'Onbo, ou un séparé ? Domaine de la démo : digest.gabin-hallosserie.com.
