@@ -38,7 +38,7 @@ export function AccountActions() {
 
   return (
     <>
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3 border-t border-zinc-200 pt-8 dark:border-zinc-800">
         <h2 className="font-medium">Sessions</h2>
         <div className="flex flex-wrap gap-3">
           <button type="button" className={secondary} disabled={pending} onClick={() => signOut(false)}>

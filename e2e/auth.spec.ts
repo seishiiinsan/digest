@@ -1,31 +1,6 @@
-import { expect, test, type Page } from "@playwright/test";
+import { expect, test } from "@playwright/test";
+import { password, signIn, signUpAndVerify, uniqueEmail } from "./helpers";
 import { waitForLink } from "./mailpit";
-
-const password = "Digest-e2e-mot-de-passe-7431";
-
-function uniqueEmail() {
-  return `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@digest.test`;
-}
-
-async function signUpAndVerify(page: Page, email: string) {
-  await page.goto("/inscription");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel(/^Mot de passe/).fill(password);
-  await page.getByLabel("Confirmation").fill(password);
-  await page.getByRole("button", { name: "Créer mon compte" }).click();
-  await expect(page.getByRole("heading", { name: "Vérifiez votre boîte mail" })).toBeVisible();
-
-  await page.goto(await waitForLink(email, "Confirmez votre adresse"));
-  await expect(page).toHaveURL(/\/tableau$/);
-  await expect(page.getByTestId("user-email")).toHaveText(email);
-}
-
-async function signIn(page: Page, email: string, pwd: string) {
-  await page.goto("/connexion");
-  await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Mot de passe").fill(pwd);
-  await page.getByRole("button", { name: "Se connecter" }).click();
-}
 
 test("inscription, vérification de l'email, déconnexion puis connexion", async ({ page }) => {
   const email = uniqueEmail();

@@ -5,6 +5,8 @@ x-app-env: &app-env
   APP_URL: ${APP_URL:-http://localhost:3000}
   # Valeur de démo : à remplacer sur tout serveur accessible (openssl rand -base64 32).
   BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-digest-local-secret-a-remplacer-en-production}
+  # Clé maître de chiffrement des clés API et webhooks. Démo uniquement : à remplacer (openssl rand -base64 32).
+  ENCRYPTION_KEY: ${ENCRYPTION_KEY:-ZGlnZXN0LWRlbW8tYS1yZW1wbGFjZXItZW4tcHJvZCE=}
   SMTP_URL: ${SMTP_URL:-smtp://mailpit:1025}
   MAIL_FROM: ${MAIL_FROM:-Digest <digest@localhost>}
   PASSWORD_BREACH_CHECK: ${PASSWORD_BREACH_CHECK:-true}
